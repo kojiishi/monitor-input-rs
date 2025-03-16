@@ -165,8 +165,10 @@ impl Cli {
         }
     }
 
+    const RE_SET_PATTERN: &str = r"^([^=]+)=(.+)$";
+
     fn run(self: &mut Cli) -> Result<()> {
-        let re_set = Regex::new(r"^([^=]+)=([^=]+)$").unwrap();
+        let re_set = Regex::new(Self::RE_SET_PATTERN).unwrap();
         let mut has_valid_args = false;
         for arg in env::args().skip(1) {
             if arg.starts_with('-') {
@@ -199,4 +201,31 @@ impl Cli {
 fn main() -> Result<()> {
     let mut cli: Cli = Default::default();
     cli.run()
+}
+
+#[cfg(test)]
+mod tests {
+    use std::vec;
+
+    use super::*;
+
+    fn matches<'a>(re: &'a Regex, input: &'a str) -> Vec<&'a str> {
+        re.captures(input)
+            .unwrap()
+            .iter()
+            .skip(1)
+            .map(|m| m.unwrap().as_str())
+            .collect()
+    }
+
+    #[test]
+    fn re_set() {
+        let re_set = Regex::new(Cli::RE_SET_PATTERN).unwrap();
+        assert_eq!(re_set.is_match("a"), false);
+        assert_eq!(re_set.is_match("a="), false);
+        assert_eq!(re_set.is_match("=a"), false);
+        assert_eq!(matches(&re_set, "a=b"), vec!["a", "b"]);
+        assert_eq!(matches(&re_set, "1=23"), vec!["1", "23"]);
+        assert_eq!(matches(&re_set, "12=34"), vec!["12", "34"]);
+    }
 }
