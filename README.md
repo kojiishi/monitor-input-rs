@@ -15,6 +15,7 @@ cargo install --path .
 
 ## Usages
 
+### List displays
 You can get a list of displays by running the command without arguments.
 ```shell-session
 set-monitor-input
@@ -30,11 +31,13 @@ The output should look like below.
 3: Dell P3223QE
     Input Source: Ok(17)
 ```
-You can set the input source by the display name as shown below.
+
+### Set the input source by the display name
 ```shell-session
 set-monitor-input U2723QE=27 P3223QE=27
 ```
-You can also specify the display by the index.
+
+### Set the input source by the display index
 ```shell-session
 set-monitor-input 1=27 2=27
 ```
