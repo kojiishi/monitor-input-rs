@@ -1,6 +1,6 @@
 [package]
 name = "set-monitor-input"
-version = "0.1.5"
+version = "0.2.0"
 edition = "2024"
 
 [dependencies]
@@ -9,3 +9,5 @@ ddc-hi = "0.4.1"
 log = "0.4.26"
 regex = "1.11.1"
 simplelog = "0.12.2"
+strum = "0.27.1"
+strum_macros = "0.27.1"

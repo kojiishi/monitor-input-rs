@@ -1,9 +1,37 @@
 use std::env;
+use std::str::FromStr;
 
 use anyhow::Result;
 use ddc_hi::{Ddc, FeatureCode};
 use log::*;
 use regex::Regex;
+use strum_macros::{AsRefStr, EnumString, FromRepr};
+
+#[derive(Debug, PartialEq, AsRefStr, EnumString, FromRepr)]
+#[repr(u16)]
+#[strum(ascii_case_insensitive)]
+enum InputSource {
+    #[strum(serialize = "DP1")]
+    DisplayPort1 = 0x0F,
+    #[strum(serialize = "DP2")]
+    DisplayPort2 = 0x10,
+    Hdmi1 = 0x11,
+    Hdmi2 = 0x12,
+    UsbC1 = 0x19,
+    UsbC2 = 0x1B,
+}
+
+impl InputSource {
+    fn u16_from_str(input: &str) -> Result<u16, strum::ParseError> {
+        if let Ok(value) = input.parse::<u16>() {
+            return Ok(value);
+        }
+        match InputSource::from_str(input) {
+            Ok(value) => Ok(value as u16),
+            Err(e) => Err(e),
+        }
+    }
+}
 
 /// VCP feature code for input select
 const INPUT_SELECT: FeatureCode = 0x60;
@@ -79,13 +107,12 @@ impl Display {
         // Err(io::Error::new(io::ErrorKind::Unsupported, "INPUT_SELECT not in MCCS").into())
     }
 
-    fn set_current_input_source(self: &mut Display, value: &str) -> Result<()> {
+    fn set_current_input_source(self: &mut Display, value: u16) -> Result<()> {
         info!("{}.InputSource = {}", self, value);
         let feature_code: FeatureCode = self.feature_code(INPUT_SELECT);
-        let ivalue = value.parse::<u16>().unwrap();
         self.ddc_hi_display
             .handle
-            .set_vcp_feature(feature_code, ivalue)
+            .set_vcp_feature(feature_code, value)
     }
 
     fn to_long_string(self: &mut Display) -> String {
@@ -93,8 +120,17 @@ impl Display {
         let input_source = self.get_current_input_source();
         format!(
             "{}\n\
-            {indent}Input Source: {:?}",
-            self, input_source
+            {indent}Input Source: {:}",
+            self,
+            match input_source {
+                Ok(value) => {
+                    match InputSource::from_repr(value as u16) {
+                        Some(input_source) => input_source.as_ref().to_string(),
+                        None => value.to_string(),
+                    }
+                }
+                Err(e) => e.to_string(),
+            }
         )
     }
 }
@@ -144,8 +180,9 @@ impl Cli {
     }
 
     fn set(self: &mut Cli, name: &str, value: &str) -> Result<()> {
+        let input_source = InputSource::u16_from_str(value)?;
         self.for_each(name, |display: &mut Display| {
-            display.set_current_input_source(value)
+            display.set_current_input_source(input_source)
         })
     }
 
@@ -235,6 +272,31 @@ mod tests {
     use std::vec;
 
     use super::*;
+
+    #[test]
+    fn input_source_from_str() {
+        assert_eq!(InputSource::from_str("Hdmi1"), Ok(InputSource::Hdmi1));
+        // Test `ascii_case_insensitive`.
+        assert_eq!(InputSource::from_str("hdmi1"), Ok(InputSource::Hdmi1));
+        assert_eq!(InputSource::from_str("HDMI1"), Ok(InputSource::Hdmi1));
+        // Test `serialize`.
+        assert_eq!(InputSource::from_str("DP1"), Ok(InputSource::DisplayPort1));
+        assert_eq!(InputSource::from_str("dp2"), Ok(InputSource::DisplayPort2));
+        // Test failures.
+        assert!(InputSource::from_str("xyz").is_err());
+    }
+
+    #[test]
+    fn input_source_u16_from_str() {
+        assert_eq!(InputSource::u16_from_str("27"), Ok(27));
+        // Upper-compatible with `from_str`.
+        assert_eq!(
+            InputSource::u16_from_str("Hdmi1"),
+            Ok(InputSource::Hdmi1 as u16)
+        );
+        // Test failures.
+        assert!(InputSource::u16_from_str("xyz").is_err());
+    }
 
     fn matches<'a>(re: &'a Regex, input: &'a str) -> Vec<&'a str> {
         re.captures(input)

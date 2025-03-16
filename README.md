@@ -23,21 +23,21 @@ set-monitor-input
 The output should look like below.
 ```shell-session
 0: Dell P2415Q
-    Input Source: Ok(16)
+    Input Source: DisplayPort2
 1: Generic PnP Monitor
-    Input Source: Ok(0)
+    Input Source: 0
 2: Dell U2723QE
-    Input Source: Ok(15)
+    Input Source: DisplayPort1
 3: Dell P3223QE
-    Input Source: Ok(17)
+    Input Source: Hdmi1
 ```
 
 ### Set the input source by the display name
 ```shell-session
-set-monitor-input U2723QE=27 P3223QE=27
+set-monitor-input U2723QE=dp1 P3223QE=hdmi1
 ```
 
 ### Set the input source by the display index
 ```shell-session
-set-monitor-input 1=27 2=27
+set-monitor-input 1=usbc1 2=27
 ```
