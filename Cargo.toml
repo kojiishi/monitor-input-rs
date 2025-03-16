@@ -1,0 +1,9 @@
+[package]
+name = "set-monitor-input"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+anyhow = "1.0.97"
+ddc-hi = "0.4.1"
+regex = "1.11.1"
