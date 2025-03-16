@@ -118,11 +118,13 @@ impl Cli {
             return callback(&mut self.displays[index]);
         }
 
-        self.ensure_capabilities_if_needed();
-        for display in (&mut self.displays)
-            .into_iter()
-            .filter(|d| d.contains(name))
-        {
+        for display in &mut self.displays {
+            if self.needs_capabilities {
+                display.ensure_capabilities_as_warn();
+            }
+            if !display.contains(name) {
+                continue;
+            }
             callback(display)?;
         }
 
@@ -137,21 +139,14 @@ impl Cli {
 
     fn print_list(self: &mut Cli) -> Result<()> {
         self.ensure_logger();
-        self.ensure_capabilities_if_needed();
         for (index, display) in (&mut self.displays).into_iter().enumerate() {
+            if self.needs_capabilities {
+                display.ensure_capabilities_as_warn();
+            }
             println!("{index}: {}", display.to_long_string());
             debug!("{:?}", display);
         }
         Ok(())
-    }
-
-    fn ensure_capabilities_if_needed(self: &mut Cli) {
-        if !self.needs_capabilities {
-            return;
-        }
-        for display in &mut self.displays {
-            display.ensure_capabilities_as_warn();
-        }
     }
 
     fn ensure_logger(self: &mut Cli) {
