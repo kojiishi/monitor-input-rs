@@ -10,6 +10,7 @@ const INPUT_SELECT: FeatureCode = 0x60;
 
 struct Display {
     ddc_hi_display: ddc_hi::Display,
+    is_capabilities_updated: bool,
 }
 
 impl std::fmt::Display for Display {
@@ -27,7 +28,21 @@ impl std::fmt::Debug for Display {
 impl Display {
     fn update_capabilities(self: &mut Display) -> Result<()> {
         debug!("update_capabilities: {}", self);
+        self.is_capabilities_updated = true;
         self.ddc_hi_display.update_capabilities()
+    }
+
+    fn ensure_capabilities(self: &mut Display) -> Result<()> {
+        if self.is_capabilities_updated {
+            return Ok(());
+        }
+        self.update_capabilities()
+    }
+
+    fn ensure_capabilities_as_warn(self: &mut Display) {
+        if let Err(e) = self.ensure_capabilities() {
+            warn!("{}: Failed to update capabilities: {}", self, e);
+        }
     }
 
     fn contains(self: &Display, name: &str) -> bool {
@@ -74,6 +89,7 @@ struct Cli {
     displays: Vec<Display>,
     is_debug: bool,
     is_logger_initialized: bool,
+    needs_capabilities: bool,
 }
 
 impl Default for Cli {
@@ -81,10 +97,14 @@ impl Default for Cli {
         Cli {
             displays: ddc_hi::Display::enumerate()
                 .into_iter()
-                .map(|d| Display { ddc_hi_display: d })
+                .map(|d| Display {
+                    ddc_hi_display: d,
+                    is_capabilities_updated: false,
+                })
                 .collect(),
             is_debug: false,
             is_logger_initialized: false,
+            needs_capabilities: false,
         }
     }
 }
@@ -98,6 +118,7 @@ impl Cli {
             return callback(&mut self.displays[index]);
         }
 
+        self.ensure_capabilities_if_needed();
         for display in (&mut self.displays)
             .into_iter()
             .filter(|d| d.contains(name))
@@ -114,21 +135,23 @@ impl Cli {
         })
     }
 
-    fn update_capabilities(self: &mut Cli) -> Result<()> {
-        for display in &mut self.displays {
-            if let Err(e) = display.update_capabilities() {
-                warn!("{}: Failed to update capabilities: {}", display, e);
-            }
-        }
-        Ok(())
-    }
-
     fn print_list(self: &mut Cli) -> Result<()> {
+        self.ensure_logger();
+        self.ensure_capabilities_if_needed();
         for (index, display) in (&mut self.displays).into_iter().enumerate() {
             println!("{index}: {}", display.to_long_string());
             debug!("{:?}", display);
         }
         Ok(())
+    }
+
+    fn ensure_capabilities_if_needed(self: &mut Cli) {
+        if !self.needs_capabilities {
+            return;
+        }
+        for display in &mut self.displays {
+            display.ensure_capabilities_as_warn();
+        }
     }
 
     fn ensure_logger(self: &mut Cli) {
@@ -153,10 +176,7 @@ impl Cli {
     fn parse_options(self: &mut Cli, arg: &String) {
         for ch in arg.chars().skip(1) {
             match ch {
-                'c' => {
-                    self.ensure_logger();
-                    self.update_capabilities().unwrap()
-                }
+                'c' => self.needs_capabilities = true,
                 'D' => self.is_debug = true,
                 _ => {
                     error!("Invalid option \"{}\".", ch);
@@ -192,7 +212,6 @@ impl Cli {
             })?;
         }
         if !has_valid_args {
-            self.ensure_logger();
             self.print_list()?;
         }
         Ok(())
