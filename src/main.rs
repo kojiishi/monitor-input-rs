@@ -2,6 +2,7 @@ use std::env;
 
 use anyhow::Result;
 use ddc_hi::{Ddc, FeatureCode};
+use log::*;
 use regex::Regex;
 
 /// VCP feature code for input select
@@ -12,8 +13,14 @@ struct Display {
 }
 
 impl std::fmt::Display for Display {
-    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}", self.ddc_hi_display.info.id)
+    }
+}
+
+impl std::fmt::Debug for Display {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{:?}", self.ddc_hi_display.info)
     }
 }
 
@@ -43,7 +50,7 @@ impl Display {
     }
 
     fn set_current_input_source(self: &mut Display, value: &str) -> Result<()> {
-        println!("{} = {}", self, value);
+        info!("{}.InputSource = {}", self, value);
         let feature_code: FeatureCode = self.feature_code(INPUT_SELECT);
         let ivalue = value.parse::<u16>().unwrap();
         self.ddc_hi_display
@@ -65,6 +72,7 @@ impl Display {
 struct Cli {
     displays: Vec<Display>,
     is_debug: bool,
+    is_logger_initialized: bool,
 }
 
 impl Default for Cli {
@@ -75,6 +83,7 @@ impl Default for Cli {
                 .map(|d| Display { ddc_hi_display: d })
                 .collect(),
             is_debug: false,
+            is_logger_initialized: false,
         }
     }
 }
@@ -99,7 +108,6 @@ impl Cli {
     }
 
     fn set(self: &mut Cli, name: &str, value: &str) -> Result<()> {
-        println!("Set: {name} = {value}");
         self.for_each(name, |display: &mut Display| {
             display.set_current_input_source(value)
         })
@@ -108,7 +116,7 @@ impl Cli {
     fn update_capabilities(self: &mut Cli) -> Result<()> {
         for display in &mut self.displays {
             if let Err(e) = display.update_capabilities() {
-                eprintln!(
+                warn!(
                     "{}: Failed to update capabilities, ignored.\n{}",
                     display, e
                 );
@@ -120,11 +128,41 @@ impl Cli {
     fn print_list(self: &mut Cli) -> Result<()> {
         for (index, display) in (&mut self.displays).into_iter().enumerate() {
             println!("{index}: {}", display.to_long_string());
-            if self.is_debug {
-                println!("{:?}", display.ddc_hi_display.info);
-            }
+            debug!("{:?}", display);
         }
         Ok(())
+    }
+
+    fn ensure_logger(self: &mut Cli) {
+        if self.is_logger_initialized {
+            return;
+        }
+        self.is_logger_initialized = true;
+
+        simplelog::CombinedLogger::init(vec![simplelog::TermLogger::new(
+            if self.is_debug {
+                simplelog::LevelFilter::Debug
+            } else {
+                simplelog::LevelFilter::Info
+            },
+            simplelog::Config::default(),
+            simplelog::TerminalMode::Mixed,
+            simplelog::ColorChoice::Auto,
+        )])
+        .unwrap();
+    }
+
+    fn parse_options(self: &mut Cli, arg: &String) {
+        for ch in arg.chars().skip(1) {
+            match ch {
+                'c' => self.update_capabilities().unwrap(),
+                'D' => self.is_debug = true,
+                _ => {
+                    error!("Invalid option \"{}\".", ch);
+                    std::process::exit(1);
+                }
+            }
+        }
     }
 
     fn run(self: &mut Cli) -> Result<()> {
@@ -132,18 +170,10 @@ impl Cli {
         let mut has_valid_args = false;
         for arg in env::args().skip(1) {
             if arg.starts_with('-') {
-                for ch in arg.chars().skip(1) {
-                    match ch {
-                        'c' => self.update_capabilities()?,
-                        'D' => self.is_debug = true,
-                        _ => {
-                            println!("Invalid option \"{}\".", ch);
-                            std::process::exit(1);
-                        }
-                    }
-                }
+                self.parse_options(&arg);
                 continue;
             }
+            self.ensure_logger();
 
             if let Some(captures) = re_set.captures(&arg) {
                 self.set(&captures[1], &captures[2])?;
@@ -154,10 +184,12 @@ impl Cli {
             self.for_each(&arg, |display| {
                 has_valid_args = true;
                 println!("{display}");
+                debug!("{:?}", display);
                 Ok(())
             })?;
         }
         if !has_valid_args {
+            self.ensure_logger();
             self.print_list()?;
         }
         Ok(())
