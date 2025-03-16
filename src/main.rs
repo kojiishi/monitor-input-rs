@@ -56,7 +56,7 @@ impl Display {
         let input_source = self.get_current_input_source();
         format!(
             "{}\n\
-            {indent}Input Source={:?}",
+            {indent}Input Source: {:?}",
             self, input_source
         )
     }
