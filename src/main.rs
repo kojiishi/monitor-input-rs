@@ -26,6 +26,20 @@ impl std::fmt::Debug for Display {
 }
 
 impl Display {
+    fn new(ddc_hi_display: ddc_hi::Display) -> Self {
+        Display {
+            ddc_hi_display: ddc_hi_display,
+            is_capabilities_updated: false,
+        }
+    }
+
+    fn enumerate() -> Vec<Self> {
+        ddc_hi::Display::enumerate()
+            .into_iter()
+            .map(|d| Display::new(d))
+            .collect()
+    }
+
     fn update_capabilities(self: &mut Display) -> Result<()> {
         debug!("update_capabilities: {}", self);
         self.is_capabilities_updated = true;
@@ -94,22 +108,20 @@ struct Cli {
 
 impl Default for Cli {
     fn default() -> Self {
+        Cli::new(Display::enumerate())
+    }
+}
+
+impl Cli {
+    fn new(displays: Vec<Display>) -> Self {
         Cli {
-            displays: ddc_hi::Display::enumerate()
-                .into_iter()
-                .map(|d| Display {
-                    ddc_hi_display: d,
-                    is_capabilities_updated: false,
-                })
-                .collect(),
+            displays: displays,
             is_debug: false,
             is_logger_initialized: false,
             needs_capabilities: false,
         }
     }
-}
 
-impl Cli {
     fn for_each<C>(self: &mut Cli, name: &str, mut callback: C) -> Result<()>
     where
         C: FnMut(&mut Display) -> Result<()>,
@@ -214,7 +226,7 @@ impl Cli {
 }
 
 fn main() -> Result<()> {
-    let mut cli: Cli = Default::default();
+    let mut cli: Cli = Cli::default();
     cli.run()
 }
 
