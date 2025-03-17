@@ -1,4 +1,4 @@
-# set-monitor-input
+# monitor-input
 
 A command line tool to change display monitors' input sources via DDC/CI.
 
@@ -7,13 +7,13 @@ A command line tool to change display monitors' input sources via DDC/CI.
 ### From github
 
 ```shell-session
-cargo install --git https://github.com/kojiishi/set-monitor-input-rs
+cargo install --git https://github.com/kojiishi/monitor-input-rs
 ```
 
 ### From local checkout
 
 ```shell-session
-cd set-monitor-input-rs
+cd monitor-input-rs
 cargo install --path .
 ```
 
@@ -22,7 +22,7 @@ cargo install --path .
 ### List all display monitors
 You can get the list of displays by running the command without arguments.
 ```shell-session
-set-monitor-input
+monitor-input
 ```
 The output should look like below.
 ```shell-session
@@ -42,31 +42,31 @@ such as by the OS API and by the display driver APIs.
 
 ### Set the input source by name
 ```shell-session
-set-monitor-input U2723QE=dp1 P3223QE=hdmi1
+monitor-input U2723QE=dp1 P3223QE=hdmi1
 ```
 
 All display monitors that have the specified name are affected.
 The following example sets the input sources of all displays
 whose name have "Dell" to `DisplayPort1`.
 ```shell-session
-set-monitor-input Dell=dp1
+monitor-input Dell=dp1
 ```
 You can test which display monitors match
 by omitting the input source.
 The following example lists all display monitors
 whose name have "Dell" without changing their input sources.
 ```shell-session
-set-monitor-input Dell
+monitor-input Dell
 ```
 
 ### Set the input source by the display monitor index
 ```shell-session
-set-monitor-input 2=usbc2 3=usbc2
+monitor-input 2=usbc2 3=usbc2
 ```
 
 ###  Vendor-specific input sources
 The input source can be a number.
 This is useful when the display has vendor-specific input sources.
 ```shell-session
-set-monitor-input U2723QE=15 P3223QE=17
+monitor-input U2723QE=15 P3223QE=17
 ```

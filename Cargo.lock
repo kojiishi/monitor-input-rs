@@ -332,6 +332,19 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "78ca9ab1a0babb1e7d5695e3530886289c18cf2f87ec19a575a0abdce112e3a3"
 
 [[package]]
+name = "monitor-input"
+version = "0.3.0"
+dependencies = [
+ "anyhow",
+ "ddc-hi",
+ "log",
+ "regex",
+ "simplelog",
+ "strum",
+ "strum_macros",
+]
+
+[[package]]
 name = "nom"
 version = "3.2.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -481,19 +494,6 @@ dependencies = [
  "linked-hash-map",
  "serde",
  "yaml-rust",
-]
-
-[[package]]
-name = "set-monitor-input"
-version = "0.2.4"
-dependencies = [
- "anyhow",
- "ddc-hi",
- "log",
- "regex",
- "simplelog",
- "strum",
- "strum_macros",
 ]
 
 [[package]]
