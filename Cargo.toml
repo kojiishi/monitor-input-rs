@@ -1,10 +1,12 @@
 [package]
 name = "set-monitor-input"
-version = "0.2.1"
+version = "0.2.2"
 edition = "2024"
 authors = ["Koji Ishii <kojiishi@gmail.com>"]
 description = "A command line tool to change display monitors' input sources via DDC/CI."
+keywords = ["ddc", "mccs", "vcp", "vesa"]
 repository = "https://github.com/kojiishi/set-monitor-input-rs"
+documentation = "http://docs.rs/set-monitor-input"
 readme = "README.md"
 license = "Apache-2.0"
 
