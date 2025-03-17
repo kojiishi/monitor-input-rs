@@ -48,7 +48,7 @@ such as by the OS API and by the display driver APIs.
 
 ### Set the input source by name
 ```shell-session
-monitor-input U2723QE=dp1 P3223QE=hdmi1
+monitor-input U2723=dp1 P3223=hdmi1
 ```
 
 All display monitors that have the specified name are affected.
@@ -74,5 +74,5 @@ monitor-input 2=usbc2 3=usbc2
 The input source can be a number.
 This is useful when the display has vendor-specific input sources.
 ```shell-session
-monitor-input U2723QE=15 P3223QE=17
+monitor-input U2723=15 P3223=17
 ```

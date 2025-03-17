@@ -177,6 +177,7 @@ impl Cli {
             return callback(&mut self.displays[index]);
         }
 
+        let mut has_match = false;
         for display in &mut self.displays {
             if self.needs_capabilities {
                 display.ensure_capabilities_as_warn();
@@ -184,10 +185,14 @@ impl Cli {
             if !display.contains(name) {
                 continue;
             }
+            has_match = true;
             callback(display)?;
         }
+        if has_match {
+            return Ok(());
+        }
 
-        Ok(())
+        anyhow::bail!("No display monitors found for \"{}\".", name);
     }
 
     fn set(self: &mut Cli, name: &str, value: &str) -> anyhow::Result<()> {
@@ -268,7 +273,7 @@ impl Cli {
 
             self.for_each(&arg, |display| {
                 has_valid_args = true;
-                println!("{display}");
+                println!("{}", display.to_long_string());
                 debug!("{:?}", display);
                 Ok(())
             })?;
