@@ -485,7 +485,7 @@ dependencies = [
 
 [[package]]
 name = "set-monitor-input"
-version = "0.2.2"
+version = "0.2.3"
 dependencies = [
  "anyhow",
  "ddc-hi",

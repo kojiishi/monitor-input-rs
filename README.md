@@ -19,7 +19,7 @@ cargo install --path .
 
 ## Usages
 
-### List displays
+### List all display monitors
 You can get the list of displays by running the command without arguments.
 ```shell-session
 set-monitor-input
@@ -36,18 +36,30 @@ The output should look like below.
     Input Source: Hdmi1
 ```
 
-### Set the input source by the display name
+Note that a display monitor may be listed twice,
+when there are multiple ways to find display monitors,
+such as by the OS API and the display driver APIs.
+
+### Set the input source by name
 ```shell-session
 set-monitor-input U2723QE=dp1 P3223QE=hdmi1
 ```
 
-The input source also accepts a number,
-such as when the display has vendor-specific input source.
+All display monitors that have the specified name are affected.
+The following example sets the input sources of all displays
+whose name have "Dell" to `DisplayPort1`.
 ```shell-session
-set-monitor-input U2723QE=15 P3223QE=17
+set-monitor-input Dell=dp1
 ```
 
-### Set the input source by the display index
+### Set the input source by the display monitor index
 ```shell-session
-set-monitor-input 1=usbc2 2=usbc2
+set-monitor-input 2=usbc2 3=usbc2
+```
+
+###  Vendor-specific input sources
+The input source can be a number.
+This is useful when the display has vendor-specific input sources.
+```shell-session
+set-monitor-input U2723QE=15 P3223QE=17
 ```
