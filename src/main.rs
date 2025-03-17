@@ -1,6 +1,6 @@
-use std::env;
 use std::str::FromStr;
 
+use clap::Parser;
 use ddc_hi::{Ddc, DdcHost, FeatureCode};
 use log::*;
 use regex::Regex;
@@ -98,7 +98,7 @@ impl Display {
         self.ddc_hi_display.info.id.contains(name)
     }
 
-    fn feature_code(self: &mut Display, feature_code: FeatureCode) -> FeatureCode {
+    fn feature_code(self: &Display, feature_code: FeatureCode) -> FeatureCode {
         // TODO: `mccs_database` is initialized by `display.update_capabilities()`
         // which is quite slow, and it seems to work without this.
         // See also https://github.com/mjkoo/monitor-switch/blob/master/src/main.rs.
@@ -149,27 +149,37 @@ impl Display {
     }
 }
 
+#[derive(Debug, Default, Parser)]
+#[command(version, about)]
 struct Cli {
+    #[arg(skip)]
     displays: Vec<Display>,
-    is_debug: bool,
-    is_logger_initialized: bool,
-    needs_capabilities: bool,
-}
 
-impl Default for Cli {
-    fn default() -> Self {
-        Cli::new(Display::enumerate())
-    }
+    #[arg(id = "capabilities", short, long)]
+    /// Get capabilities from the display monitors.
+    needs_capabilities: bool,
+
+    #[arg(short, long)]
+    /// Show verbose information.
+    verbose: bool,
+
+    #[arg(trailing_var_arg = true, allow_hyphen_values = true)]
+    args: Vec<String>,
 }
 
 impl Cli {
-    fn new(displays: Vec<Display>) -> Self {
-        Cli {
-            displays: displays,
-            is_debug: false,
-            is_logger_initialized: false,
-            needs_capabilities: false,
-        }
+    fn init_logger(self: &Cli) {
+        simplelog::CombinedLogger::init(vec![simplelog::TermLogger::new(
+            if self.verbose {
+                simplelog::LevelFilter::Debug
+            } else {
+                simplelog::LevelFilter::Info
+            },
+            simplelog::Config::default(),
+            simplelog::TerminalMode::Mixed,
+            simplelog::ColorChoice::Auto,
+        )])
+        .unwrap();
     }
 
     fn for_each<C>(self: &mut Cli, name: &str, mut callback: C) -> anyhow::Result<()>
@@ -206,7 +216,6 @@ impl Cli {
     }
 
     fn print_list(self: &mut Cli) -> anyhow::Result<()> {
-        self.ensure_logger();
         for (index, display) in (&mut self.displays).into_iter().enumerate() {
             if self.needs_capabilities {
                 display.ensure_capabilities_as_warn();
@@ -224,50 +233,13 @@ impl Cli {
         debug!("All sleep() done");
     }
 
-    fn ensure_logger(self: &mut Cli) {
-        if self.is_logger_initialized {
-            return;
-        }
-        self.is_logger_initialized = true;
-
-        simplelog::CombinedLogger::init(vec![simplelog::TermLogger::new(
-            if self.is_debug {
-                simplelog::LevelFilter::Debug
-            } else {
-                simplelog::LevelFilter::Info
-            },
-            simplelog::Config::default(),
-            simplelog::TerminalMode::Mixed,
-            simplelog::ColorChoice::Auto,
-        )])
-        .unwrap();
-    }
-
-    fn parse_options(self: &mut Cli, arg: &String) {
-        for ch in arg.chars().skip(1) {
-            match ch {
-                'c' => self.needs_capabilities = true,
-                'v' => self.is_debug = true,
-                _ => {
-                    error!("Invalid option \"{}\".", ch);
-                    std::process::exit(1);
-                }
-            }
-        }
-    }
-
     const RE_SET_PATTERN: &str = r"^([^=]+)=(.+)$";
 
     fn run(self: &mut Cli) -> anyhow::Result<()> {
         let re_set = Regex::new(Self::RE_SET_PATTERN).unwrap();
         let mut has_valid_args = false;
-        for arg in env::args().skip(1) {
-            if arg.starts_with('-') {
-                self.parse_options(&arg);
-                continue;
-            }
-            self.ensure_logger();
-
+        let args = self.args.clone();
+        for arg in args {
             if let Some(captures) = re_set.captures(&arg) {
                 self.set(&captures[1], &captures[2])?;
                 has_valid_args = true;
@@ -290,7 +262,9 @@ impl Cli {
 }
 
 fn main() -> anyhow::Result<()> {
-    let mut cli: Cli = Cli::default();
+    let mut cli: Cli = Cli::parse();
+    cli.init_logger();
+    cli.displays = Display::enumerate();
     cli.run()
 }
 
@@ -323,6 +297,21 @@ mod tests {
         );
         // Test failures.
         assert!(InputSource::raw_from_str("xyz").is_err());
+    }
+
+    #[test]
+    fn cli_parse() {
+        let mut cli = Cli::parse_from([""]);
+        assert!(!cli.verbose);
+        assert_eq!(cli.args.len(), 0);
+
+        cli = Cli::parse_from(["", "abc", "def"]);
+        assert!(!cli.verbose);
+        assert_eq!(cli.args, ["abc", "def"]);
+
+        cli = Cli::parse_from(["", "-v", "abc", "def"]);
+        assert!(cli.verbose);
+        assert_eq!(cli.args, ["abc", "def"]);
     }
 
     fn matches<'a>(re: &'a Regex, input: &'a str) -> Vec<&'a str> {

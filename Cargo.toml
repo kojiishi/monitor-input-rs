@@ -1,6 +1,6 @@
 [package]
 name = "monitor-input"
-version = "0.3.2"
+version = "0.3.3"
 edition = "2024"
 authors = ["Koji Ishii <kojiishi@gmail.com>"]
 description = "A command line tool to change display monitors' input sources via DDC/CI."
@@ -12,6 +12,7 @@ license = "Apache-2.0"
 
 [dependencies]
 anyhow = "1.0.97"
+clap = { version = "4.5.32", features = ["derive"] }
 ddc-hi = "0.4.1"
 log = "0.4.26"
 regex = "1.11.1"
