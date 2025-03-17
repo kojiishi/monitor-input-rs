@@ -1,7 +1,7 @@
 use std::env;
 use std::str::FromStr;
 
-use ddc_hi::{Ddc, FeatureCode};
+use ddc_hi::{Ddc, DdcHost, FeatureCode};
 use log::*;
 use regex::Regex;
 use strum_macros::{AsRefStr, EnumString, FromRepr};
@@ -44,6 +44,7 @@ const INPUT_SELECT: FeatureCode = 0x60;
 struct Display {
     ddc_hi_display: ddc_hi::Display,
     is_capabilities_updated: bool,
+    needs_sleep: bool,
 }
 
 impl std::fmt::Display for Display {
@@ -63,6 +64,7 @@ impl Display {
         Display {
             ddc_hi_display: ddc_hi_display,
             is_capabilities_updated: false,
+            needs_sleep: false,
         }
     }
 
@@ -117,6 +119,16 @@ impl Display {
         self.ddc_hi_display
             .handle
             .set_vcp_feature(feature_code, value as u16)
+            .inspect(|_| self.needs_sleep = true)
+    }
+
+    fn sleep_if_needed(self: &mut Display) {
+        if self.needs_sleep {
+            debug!("{}.sleep()", self);
+            self.needs_sleep = false;
+            self.ddc_hi_display.handle.sleep();
+            debug!("{}.sleep() done", self);
+        }
     }
 
     fn to_long_string(self: &mut Display) -> String {
@@ -197,6 +209,13 @@ impl Cli {
         Ok(())
     }
 
+    fn sleep_if_needed(self: &mut Cli) {
+        for display in &mut self.displays {
+            display.sleep_if_needed();
+        }
+        debug!("All sleep() done");
+    }
+
     fn ensure_logger(self: &mut Cli) {
         if self.is_logger_initialized {
             return;
@@ -257,6 +276,7 @@ impl Cli {
         if !has_valid_args {
             self.print_list()?;
         }
+        self.sleep_if_needed();
         Ok(())
     }
 }
