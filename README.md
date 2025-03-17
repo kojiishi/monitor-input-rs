@@ -36,9 +36,9 @@ The output should look like below.
     Input Source: Hdmi1
 ```
 
-Note that a display monitor may be listed twice,
-when there are multiple ways to find display monitors,
-such as by the OS API and the display driver APIs.
+Note that a display monitor may be listed twice.
+This happens when there are multiple ways to find display monitors,
+such as by the OS API and by the display driver APIs.
 
 ### Set the input source by name
 ```shell-session
@@ -50,6 +50,13 @@ The following example sets the input sources of all displays
 whose name have "Dell" to `DisplayPort1`.
 ```shell-session
 set-monitor-input Dell=dp1
+```
+You can test which display monitors match
+by omitting the input source.
+The following example lists all display monitors
+whose name have "Dell" without changing their input sources.
+```shell-session
+set-monitor-input Dell
 ```
 
 ### Set the input source by the display monitor index
