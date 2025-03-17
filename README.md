@@ -16,7 +16,7 @@ cargo install --path .
 ## Usages
 
 ### List displays
-You can get a list of displays by running the command without arguments.
+You can get the list of displays by running the command without arguments.
 ```shell-session
 set-monitor-input
 ```
@@ -37,7 +37,13 @@ The output should look like below.
 set-monitor-input U2723QE=dp1 P3223QE=hdmi1
 ```
 
+The input source also accepts a number,
+such as when the display has vendor-specific input source.
+```shell-session
+set-monitor-input U2723QE=15 P3223QE=17
+```
+
 ### Set the input source by the display index
 ```shell-session
-set-monitor-input 1=usbc1 2=27
+set-monitor-input 1=usbc2 2=usbc2
 ```

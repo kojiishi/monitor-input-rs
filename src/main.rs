@@ -31,6 +31,13 @@ impl InputSource {
             Err(e) => Err(e),
         }
     }
+
+    fn str_from_u16(value: u16) -> String {
+        match InputSource::from_repr(value as u16) {
+            Some(input_source) => input_source.as_ref().to_string(),
+            None => value.to_string(),
+        }
+    }
 }
 
 /// VCP feature code for input select
@@ -123,12 +130,7 @@ impl Display {
             {indent}Input Source: {:}",
             self,
             match input_source {
-                Ok(value) => {
-                    match InputSource::from_repr(value as u16) {
-                        Some(input_source) => input_source.as_ref().to_string(),
-                        None => value.to_string(),
-                    }
-                }
+                Ok(value) => InputSource::str_from_u16(value as u16),
                 Err(e) => e.to_string(),
             }
         )
