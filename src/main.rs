@@ -132,17 +132,20 @@ impl Display {
     }
 
     fn to_long_string(self: &mut Display) -> String {
-        let indent = "    ";
+        let mut lines = Vec::new();
+        lines.push(self.to_string());
         let input_source = self.get_current_input_source();
-        format!(
-            "{}\n\
-            {indent}Input Source: {:}",
-            self,
+        lines.push(format!(
+            "Input Source: {}",
             match input_source {
                 Ok(value) => InputSource::str_from_raw(value as InputSourceRaw),
                 Err(e) => e.to_string(),
             }
-        )
+        ));
+        if let Some(model) = &self.ddc_hi_display.info.model_name {
+            lines.push(format!("Model: {}", model));
+        }
+        return lines.join("\n    ");
     }
 }
 
