@@ -1,7 +1,6 @@
 use std::env;
 use std::str::FromStr;
 
-use anyhow::Result;
 use ddc_hi::{Ddc, FeatureCode};
 use log::*;
 use regex::Regex;
@@ -77,13 +76,13 @@ impl Display {
             .collect()
     }
 
-    fn update_capabilities(self: &mut Display) -> Result<()> {
+    fn update_capabilities(self: &mut Display) -> anyhow::Result<()> {
         debug!("update_capabilities: {}", self);
         self.is_capabilities_updated = true;
         self.ddc_hi_display.update_capabilities()
     }
 
-    fn ensure_capabilities(self: &mut Display) -> Result<()> {
+    fn ensure_capabilities(self: &mut Display) -> anyhow::Result<()> {
         if self.is_capabilities_updated {
             return Ok(());
         }
@@ -110,13 +109,12 @@ impl Display {
         feature_code
     }
 
-    fn get_current_input_source(self: &mut Display) -> Result<u8> {
+    fn get_current_input_source(self: &mut Display) -> anyhow::Result<u8> {
         let feature_code: FeatureCode = self.feature_code(INPUT_SELECT);
         Ok(self.ddc_hi_display.handle.get_vcp_feature(feature_code)?.sl)
-        // Err(io::Error::new(io::ErrorKind::Unsupported, "INPUT_SELECT not in MCCS").into())
     }
 
-    fn set_current_input_source(self: &mut Display, value: InputSourceRaw) -> Result<()> {
+    fn set_current_input_source(self: &mut Display, value: InputSourceRaw) -> anyhow::Result<()> {
         info!("{}.InputSource = {}", self, value);
         let feature_code: FeatureCode = self.feature_code(INPUT_SELECT);
         self.ddc_hi_display
@@ -162,9 +160,9 @@ impl Cli {
         }
     }
 
-    fn for_each<C>(self: &mut Cli, name: &str, mut callback: C) -> Result<()>
+    fn for_each<C>(self: &mut Cli, name: &str, mut callback: C) -> anyhow::Result<()>
     where
-        C: FnMut(&mut Display) -> Result<()>,
+        C: FnMut(&mut Display) -> anyhow::Result<()>,
     {
         if let Ok(index) = name.parse::<usize>() {
             return callback(&mut self.displays[index]);
@@ -183,14 +181,14 @@ impl Cli {
         Ok(())
     }
 
-    fn set(self: &mut Cli, name: &str, value: &str) -> Result<()> {
+    fn set(self: &mut Cli, name: &str, value: &str) -> anyhow::Result<()> {
         let input_source = InputSource::raw_from_str(value)?;
         self.for_each(name, |display: &mut Display| {
             display.set_current_input_source(input_source)
         })
     }
 
-    fn print_list(self: &mut Cli) -> Result<()> {
+    fn print_list(self: &mut Cli) -> anyhow::Result<()> {
         self.ensure_logger();
         for (index, display) in (&mut self.displays).into_iter().enumerate() {
             if self.needs_capabilities {
@@ -236,7 +234,7 @@ impl Cli {
 
     const RE_SET_PATTERN: &str = r"^([^=]+)=(.+)$";
 
-    fn run(self: &mut Cli) -> Result<()> {
+    fn run(self: &mut Cli) -> anyhow::Result<()> {
         let re_set = Regex::new(Self::RE_SET_PATTERN).unwrap();
         let mut has_valid_args = false;
         for arg in env::args().skip(1) {
@@ -266,7 +264,7 @@ impl Cli {
     }
 }
 
-fn main() -> Result<()> {
+fn main() -> anyhow::Result<()> {
     let mut cli: Cli = Cli::default();
     cli.run()
 }
