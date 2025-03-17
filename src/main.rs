@@ -27,10 +27,7 @@ impl InputSource {
         if let Ok(value) = input.parse::<InputSourceRaw>() {
             return Ok(value);
         }
-        match InputSource::from_str(input) {
-            Ok(value) => Ok(value as InputSourceRaw),
-            Err(e) => Err(e),
-        }
+        InputSource::from_str(input).map(|value| value as InputSourceRaw)
     }
 
     fn str_from_raw(value: InputSourceRaw) -> String {
@@ -289,7 +286,7 @@ mod tests {
     }
 
     #[test]
-    fn input_source_u16_from_str() {
+    fn input_source_raw_from_str() {
         assert_eq!(InputSource::raw_from_str("27"), Ok(27));
         // Upper-compatible with `from_str`.
         assert_eq!(
