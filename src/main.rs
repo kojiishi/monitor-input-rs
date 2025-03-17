@@ -223,7 +223,7 @@ impl Cli {
         for ch in arg.chars().skip(1) {
             match ch {
                 'c' => self.needs_capabilities = true,
-                'D' => self.is_debug = true,
+                'v' => self.is_debug = true,
                 _ => {
                     error!("Invalid option \"{}\".", ch);
                     std::process::exit(1);
