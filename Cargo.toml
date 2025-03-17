@@ -2,6 +2,11 @@
 name = "set-monitor-input"
 version = "0.2.1"
 edition = "2024"
+authors = ["Koji Ishii <kojiishi@gmail.com>"]
+description = "A command line tool to set monitors' input sources via DDC/CI."
+repository = "https://github.com/kojiishi/set-monitor-input-rs"
+readme = "README.md"
+license = "Apache-2.0"
 
 [dependencies]
 anyhow = "1.0.97"
