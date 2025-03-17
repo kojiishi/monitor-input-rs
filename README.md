@@ -1,6 +1,6 @@
 # set-monitor-input
 
-A command line tool to set monitors' input sources via DDC/CI.
+A command line tool to change display monitors' input sources via DDC/CI.
 
 ## Installation
 
