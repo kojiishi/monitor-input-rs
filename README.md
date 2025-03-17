@@ -4,7 +4,9 @@ A command line tool to change display monitors' input sources via DDC/CI.
 
 ## Installation
 
-### From github
+Please [install Rust](https://rustup.rs/) if you haven't done so.
+
+### From [github](https://github.com/kojiishi/monitor-input-rs)
 
 ```shell-session
 cargo install --git https://github.com/kojiishi/monitor-input-rs
