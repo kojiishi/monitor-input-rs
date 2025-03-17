@@ -10,6 +10,12 @@ A command line tool to change display monitors' input sources via DDC/CI.
 cargo install --git https://github.com/kojiishi/monitor-input-rs
 ```
 
+### From [`crates.io`](https://crates.io/crates/monitor-input)
+
+```shell-session
+cargo install monitor-input
+```
+
 ### From local checkout
 
 ```shell-session
