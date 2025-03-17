@@ -7,8 +7,10 @@ use log::*;
 use regex::Regex;
 use strum_macros::{AsRefStr, EnumString, FromRepr};
 
+type InputSourceRaw = u8;
+
 #[derive(Debug, PartialEq, AsRefStr, EnumString, FromRepr)]
-#[repr(u16)]
+#[repr(u8)]
 #[strum(ascii_case_insensitive)]
 enum InputSource {
     #[strum(serialize = "DP1")]
@@ -22,18 +24,18 @@ enum InputSource {
 }
 
 impl InputSource {
-    fn u16_from_str(input: &str) -> Result<u16, strum::ParseError> {
-        if let Ok(value) = input.parse::<u16>() {
+    fn raw_from_str(input: &str) -> Result<InputSourceRaw, strum::ParseError> {
+        if let Ok(value) = input.parse::<InputSourceRaw>() {
             return Ok(value);
         }
         match InputSource::from_str(input) {
-            Ok(value) => Ok(value as u16),
+            Ok(value) => Ok(value as InputSourceRaw),
             Err(e) => Err(e),
         }
     }
 
-    fn str_from_u16(value: u16) -> String {
-        match InputSource::from_repr(value as u16) {
+    fn str_from_raw(value: InputSourceRaw) -> String {
+        match InputSource::from_repr(value) {
             Some(input_source) => input_source.as_ref().to_string(),
             None => value.to_string(),
         }
@@ -114,12 +116,12 @@ impl Display {
         // Err(io::Error::new(io::ErrorKind::Unsupported, "INPUT_SELECT not in MCCS").into())
     }
 
-    fn set_current_input_source(self: &mut Display, value: u16) -> Result<()> {
+    fn set_current_input_source(self: &mut Display, value: InputSourceRaw) -> Result<()> {
         info!("{}.InputSource = {}", self, value);
         let feature_code: FeatureCode = self.feature_code(INPUT_SELECT);
         self.ddc_hi_display
             .handle
-            .set_vcp_feature(feature_code, value)
+            .set_vcp_feature(feature_code, value as u16)
     }
 
     fn to_long_string(self: &mut Display) -> String {
@@ -130,7 +132,7 @@ impl Display {
             {indent}Input Source: {:}",
             self,
             match input_source {
-                Ok(value) => InputSource::str_from_u16(value as u16),
+                Ok(value) => InputSource::str_from_raw(value as InputSourceRaw),
                 Err(e) => e.to_string(),
             }
         )
@@ -182,7 +184,7 @@ impl Cli {
     }
 
     fn set(self: &mut Cli, name: &str, value: &str) -> Result<()> {
-        let input_source = InputSource::u16_from_str(value)?;
+        let input_source = InputSource::raw_from_str(value)?;
         self.for_each(name, |display: &mut Display| {
             display.set_current_input_source(input_source)
         })
@@ -290,14 +292,14 @@ mod tests {
 
     #[test]
     fn input_source_u16_from_str() {
-        assert_eq!(InputSource::u16_from_str("27"), Ok(27));
+        assert_eq!(InputSource::raw_from_str("27"), Ok(27));
         // Upper-compatible with `from_str`.
         assert_eq!(
-            InputSource::u16_from_str("Hdmi1"),
-            Ok(InputSource::Hdmi1 as u16)
+            InputSource::raw_from_str("Hdmi1"),
+            Ok(InputSource::Hdmi1 as InputSourceRaw)
         );
         // Test failures.
-        assert!(InputSource::u16_from_str("xyz").is_err());
+        assert!(InputSource::raw_from_str("xyz").is_err());
     }
 
     fn matches<'a>(re: &'a Regex, input: &'a str) -> Vec<&'a str> {
