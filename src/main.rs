@@ -199,6 +199,9 @@ struct Cli {
     /// Show verbose information.
     verbose: bool,
 
+    #[arg(skip)]
+    set_index: Option<usize>,
+
     /// `name` to search,
     /// or `name=input` to change the input source.
     args: Vec<String>,
@@ -245,7 +248,49 @@ impl Cli {
         anyhow::bail!("No display monitors found for \"{}\".", name);
     }
 
+    fn compute_toggle_set_index(
+        current_input_source: InputSourceRaw,
+        input_sources: &[InputSourceRaw],
+    ) -> usize {
+        input_sources
+            .iter()
+            .position(|v| *v == current_input_source)
+            // Toggle to the next index, or 0 if it's not in the list.
+            .map_or(0, |i| i + 1)
+    }
+
+    fn toggle(self: &mut Cli, name: &str, values: &[&str]) -> anyhow::Result<()> {
+        let mut input_sources: Vec<InputSourceRaw> = vec![];
+        for value in values {
+            input_sources.push(InputSource::raw_from_str(value)?);
+        }
+        let mut set_index = self.set_index;
+        let result = self.for_each(name, |display: &mut Display| {
+            if set_index.is_none() {
+                let current_input_source = display.get_current_input_source()?;
+                set_index = Some(Self::compute_toggle_set_index(
+                    current_input_source,
+                    &input_sources,
+                ));
+                debug!(
+                    "Set = {} (because {display}.InputSource is {})",
+                    set_index.unwrap(),
+                    InputSource::str_from_raw(current_input_source)
+                );
+            }
+            let used_index = set_index.unwrap().min(input_sources.len() - 1);
+            let input_source = input_sources[used_index];
+            display.set_current_input_source(input_source)
+        });
+        self.set_index = set_index;
+        result
+    }
+
     fn set(self: &mut Cli, name: &str, value: &str) -> anyhow::Result<()> {
+        let toggle_values: Vec<&str> = value.split(',').collect();
+        if toggle_values.len() > 1 {
+            return self.toggle(name, &toggle_values);
+        }
         let input_source = InputSource::raw_from_str(value)?;
         self.for_each(name, |display: &mut Display| {
             display.set_current_input_source(input_source)
@@ -389,5 +434,17 @@ mod tests {
         assert_eq!(matches(&re_set, "a=b"), vec!["a", "b"]);
         assert_eq!(matches(&re_set, "1=23"), vec!["1", "23"]);
         assert_eq!(matches(&re_set, "12=34"), vec!["12", "34"]);
+        assert_eq!(matches(&re_set, "12=3,4"), vec!["12", "3,4"]);
+    }
+
+    #[test]
+    fn compute_toggle_set_index() {
+        assert_eq!(Cli::compute_toggle_set_index(1, &[1, 4, 9]), 1);
+        assert_eq!(Cli::compute_toggle_set_index(4, &[1, 4, 9]), 2);
+        assert_eq!(Cli::compute_toggle_set_index(9, &[1, 4, 9]), 3);
+        // The result should be 0 if the `value` isn't in the list.
+        assert_eq!(Cli::compute_toggle_set_index(0, &[1, 4, 9]), 0);
+        assert_eq!(Cli::compute_toggle_set_index(2, &[1, 4, 9]), 0);
+        assert_eq!(Cli::compute_toggle_set_index(10, &[1, 4, 9]), 0);
     }
 }
