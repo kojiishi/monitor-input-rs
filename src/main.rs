@@ -44,6 +44,20 @@ impl InputSource {
 /// VCP feature code for input select
 const INPUT_SELECT: FeatureCode = 0x60;
 
+static mut DRY_RUN: bool = false;
+
+fn is_dry_run() -> bool {
+    unsafe {
+        return DRY_RUN;
+    }
+}
+
+fn set_dry_run(value: bool) {
+    unsafe {
+        DRY_RUN = value;
+    }
+}
+
 struct Display {
     ddc_hi_display: ddc_hi::Display,
     is_capabilities_updated: bool,
@@ -117,7 +131,19 @@ impl Display {
     }
 
     fn set_current_input_source(self: &mut Display, value: InputSourceRaw) -> anyhow::Result<()> {
-        info!("{}.InputSource = {}", self, value);
+        if is_dry_run() {
+            info!(
+                "{}.InputSource = {} (dry-run)",
+                self,
+                InputSource::str_from_raw(value)
+            );
+            return Ok(());
+        }
+        info!(
+            "{}.InputSource = {}",
+            self,
+            InputSource::str_from_raw(value)
+        );
         let feature_code: FeatureCode = self.feature_code(INPUT_SELECT);
         self.ddc_hi_display
             .handle
@@ -164,6 +190,10 @@ struct Cli {
     #[arg(id = "capabilities", short, long)]
     /// Get capabilities from the display monitors.
     needs_capabilities: bool,
+
+    #[arg(short = 'n', long)]
+    /// Dry-run (prevent actual changes).
+    dry_run: bool,
 
     #[arg(short, long)]
     /// Show verbose information.
@@ -271,6 +301,7 @@ impl Cli {
 fn main() -> anyhow::Result<()> {
     let mut cli: Cli = Cli::parse();
     cli.init_logger();
+    set_dry_run(cli.dry_run);
     cli.displays = Display::enumerate();
     cli.run()
 }
