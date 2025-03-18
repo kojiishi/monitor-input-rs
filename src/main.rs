@@ -1,5 +1,6 @@
 use std::str::FromStr;
 
+use anyhow::Context;
 use clap::Parser;
 use ddc_hi::{Ddc, DdcHost, FeatureCode};
 use log::*;
@@ -23,11 +24,13 @@ enum InputSource {
 }
 
 impl InputSource {
-    fn raw_from_str(input: &str) -> Result<InputSourceRaw, strum::ParseError> {
+    fn raw_from_str(input: &str) -> anyhow::Result<InputSourceRaw> {
         if let Ok(value) = input.parse::<InputSourceRaw>() {
             return Ok(value);
         }
-        InputSource::from_str(input).map(|value| value as InputSourceRaw)
+        InputSource::from_str(input)
+            .map(|value| value as InputSourceRaw)
+            .with_context(|| format!("\"{input}\" is not a valid input source"))
     }
 
     fn str_from_raw(value: InputSourceRaw) -> String {
@@ -293,14 +296,20 @@ mod tests {
 
     #[test]
     fn input_source_raw_from_str() {
-        assert_eq!(InputSource::raw_from_str("27"), Ok(27));
+        assert_eq!(InputSource::raw_from_str("27").unwrap(), 27);
         // Upper-compatible with `from_str`.
         assert_eq!(
-            InputSource::raw_from_str("Hdmi1"),
-            Ok(InputSource::Hdmi1 as InputSourceRaw)
+            InputSource::raw_from_str("Hdmi1").unwrap(),
+            InputSource::Hdmi1 as InputSourceRaw
         );
         // Test failures.
         assert!(InputSource::raw_from_str("xyz").is_err());
+        assert!(
+            InputSource::raw_from_str("xyz")
+                .unwrap_err()
+                .to_string()
+                .contains("xyz")
+        );
     }
 
     #[test]
