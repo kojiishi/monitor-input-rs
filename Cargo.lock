@@ -441,6 +441,7 @@ dependencies = [
  "clap",
  "ddc-hi",
  "log",
+ "mccs-db",
  "regex",
  "simplelog",
  "strum",

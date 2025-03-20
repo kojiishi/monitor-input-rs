@@ -147,6 +147,15 @@ impl Monitor {
             .inspect(|_| self.needs_sleep = true)
     }
 
+    fn input_sources(&mut self) -> Vec<InputSourceRaw> {
+        if let Some(mccs_descriptor) = self.ddc_hi_display.info.mccs_database.get(INPUT_SELECT) {
+            if let mccs_db::ValueType::NonContinuous { values, .. } = &mccs_descriptor.ty {
+                return values.iter().map(|(v, _)| *v as InputSourceRaw).collect();
+            }
+        }
+        vec![]
+    }
+
     fn sleep_if_needed(&mut self) {
         if self.needs_sleep {
             debug!("{}.sleep()", self);
@@ -167,6 +176,17 @@ impl Monitor {
                 Err(e) => e.to_string(),
             }
         ));
+        let input_sources = self.input_sources();
+        if !input_sources.is_empty() {
+            lines.push(format!(
+                "Input Sources: {}",
+                input_sources
+                    .iter()
+                    .map(|value| InputSource::str_from_raw(*value))
+                    .collect::<Vec<_>>()
+                    .join(", ")
+            ));
+        }
         if let Some(model) = &self.ddc_hi_display.info.model_name {
             lines.push(format!("Model: {}", model));
         }
