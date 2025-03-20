@@ -151,6 +151,9 @@ impl Display {
 
 #[derive(Debug, Default, Parser)]
 #[command(version, about)]
+/// A command line tool to change display monitors' input sources via DDC/CI.
+///
+/// See https://github.com/kojiishi/monitor-input-rs for more details.
 struct Cli {
     #[arg(skip)]
     displays: Vec<Display>,
@@ -163,7 +166,8 @@ struct Cli {
     /// Show verbose information.
     verbose: bool,
 
-    #[arg(trailing_var_arg = true, allow_hyphen_values = true)]
+    /// `name` to search,
+    /// or `name=input` to change the input source.
     args: Vec<String>,
 }
 
@@ -312,6 +316,19 @@ mod tests {
         cli = Cli::parse_from(["", "-v", "abc", "def"]);
         assert!(cli.verbose);
         assert_eq!(cli.args, ["abc", "def"]);
+    }
+
+    #[test]
+    fn cli_parse_option_after_positional() {
+        let cli = Cli::parse_from(["", "abc", "def", "-v"]);
+        assert!(cli.verbose);
+        assert_eq!(cli.args, ["abc", "def"]);
+    }
+
+    #[test]
+    fn cli_parse_positional_with_hyphen() {
+        let cli = Cli::parse_from(["", "--", "-abc", "-def"]);
+        assert_eq!(cli.args, ["-abc", "-def"]);
     }
 
     fn matches<'a>(re: &'a Regex, input: &'a str) -> Vec<&'a str> {
