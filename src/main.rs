@@ -203,7 +203,8 @@ struct Cli {
     set_index: Option<usize>,
 
     /// `name` to search,
-    /// or `name=input` to change the input source.
+    /// `name=input` to change the input source,
+    /// or `name=input1,input2` to toggle.
     args: Vec<String>,
 }
 
