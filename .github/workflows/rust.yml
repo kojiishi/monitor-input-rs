@@ -13,13 +13,19 @@ jobs:
   build:
     strategy:
       matrix:
-        # On `ubuntu-latest`, `libudev-sys v0.1.4` fails to build.
-        os: [windows-latest, macos-latest]
+        os: [windows-latest, macos-latest, ubuntu-latest]
 
     runs-on: ${{ matrix.os }}
 
     steps:
     - uses: actions/checkout@v4
+
+    # Libudev Rust Bindings requires `libudev-dev`
+    # https://github.com/dcuddeback/libudev-sys
+    - name: Install libudev-dev
+      run: sudo apt-get install libudev-dev
+      if: contains(matrix.os, 'ubuntu')
+
     - name: Build
       run: cargo build --verbose
     - name: Run tests
