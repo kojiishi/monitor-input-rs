@@ -11,8 +11,12 @@ env:
 
 jobs:
   build:
+    strategy:
+      matrix:
+        # On `ubuntu-latest`, `libudev-sys v0.1.4` fails to build.
+        os: [windows-latest, macos-latest]
 
-    runs-on: windows-latest
+    runs-on: ${{ matrix.os }}
 
     steps:
     - uses: actions/checkout@v4
