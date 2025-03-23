@@ -58,27 +58,27 @@ fn set_dry_run(value: bool) {
     }
 }
 
-struct Display {
+struct Monitor {
     ddc_hi_display: ddc_hi::Display,
     is_capabilities_updated: bool,
     needs_sleep: bool,
 }
 
-impl std::fmt::Display for Display {
+impl std::fmt::Display for Monitor {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}", self.ddc_hi_display.info.id)
     }
 }
 
-impl std::fmt::Debug for Display {
+impl std::fmt::Debug for Monitor {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{:?}", self.ddc_hi_display.info)
     }
 }
 
-impl Display {
+impl Monitor {
     fn new(ddc_hi_display: ddc_hi::Display) -> Self {
-        Display {
+        Monitor {
             ddc_hi_display: ddc_hi_display,
             is_capabilities_updated: false,
             needs_sleep: false,
@@ -88,34 +88,34 @@ impl Display {
     fn enumerate() -> Vec<Self> {
         ddc_hi::Display::enumerate()
             .into_iter()
-            .map(|d| Display::new(d))
+            .map(|d| Monitor::new(d))
             .collect()
     }
 
-    fn update_capabilities(self: &mut Display) -> anyhow::Result<()> {
+    fn update_capabilities(self: &mut Monitor) -> anyhow::Result<()> {
         debug!("update_capabilities: {}", self);
         self.is_capabilities_updated = true;
         self.ddc_hi_display.update_capabilities()
     }
 
-    fn ensure_capabilities(self: &mut Display) -> anyhow::Result<()> {
+    fn ensure_capabilities(self: &mut Monitor) -> anyhow::Result<()> {
         if self.is_capabilities_updated {
             return Ok(());
         }
         self.update_capabilities()
     }
 
-    fn ensure_capabilities_as_warn(self: &mut Display) {
+    fn ensure_capabilities_as_warn(self: &mut Monitor) {
         if let Err(e) = self.ensure_capabilities() {
             warn!("{}: Failed to update capabilities: {}", self, e);
         }
     }
 
-    fn contains(self: &Display, name: &str) -> bool {
+    fn contains(self: &Monitor, name: &str) -> bool {
         self.ddc_hi_display.info.id.contains(name)
     }
 
-    fn feature_code(self: &Display, feature_code: FeatureCode) -> FeatureCode {
+    fn feature_code(self: &Monitor, feature_code: FeatureCode) -> FeatureCode {
         // TODO: `mccs_database` is initialized by `display.update_capabilities()`
         // which is quite slow, and it seems to work without this.
         // See also https://github.com/mjkoo/monitor-switch/blob/master/src/main.rs.
@@ -125,12 +125,12 @@ impl Display {
         feature_code
     }
 
-    fn get_current_input_source(self: &mut Display) -> anyhow::Result<u8> {
+    fn get_current_input_source(self: &mut Monitor) -> anyhow::Result<u8> {
         let feature_code: FeatureCode = self.feature_code(INPUT_SELECT);
         Ok(self.ddc_hi_display.handle.get_vcp_feature(feature_code)?.sl)
     }
 
-    fn set_current_input_source(self: &mut Display, value: InputSourceRaw) -> anyhow::Result<()> {
+    fn set_current_input_source(self: &mut Monitor, value: InputSourceRaw) -> anyhow::Result<()> {
         if is_dry_run() {
             info!(
                 "{}.InputSource = {} (dry-run)",
@@ -151,7 +151,7 @@ impl Display {
             .inspect(|_| self.needs_sleep = true)
     }
 
-    fn sleep_if_needed(self: &mut Display) {
+    fn sleep_if_needed(self: &mut Monitor) {
         if self.needs_sleep {
             debug!("{}.sleep()", self);
             self.needs_sleep = false;
@@ -160,7 +160,7 @@ impl Display {
         }
     }
 
-    fn to_long_string(self: &mut Display) -> String {
+    fn to_long_string(self: &mut Monitor) -> String {
         let mut lines = Vec::new();
         lines.push(self.to_string());
         let input_source = self.get_current_input_source();
@@ -185,7 +185,7 @@ impl Display {
 /// See https://github.com/kojiishi/monitor-input-rs for more details.
 struct Cli {
     #[arg(skip)]
-    displays: Vec<Display>,
+    monitors: Vec<Monitor>,
 
     #[arg(id = "capabilities", short, long)]
     /// Get capabilities from the display monitors.
@@ -225,22 +225,22 @@ impl Cli {
 
     fn for_each<C>(self: &mut Cli, name: &str, mut callback: C) -> anyhow::Result<()>
     where
-        C: FnMut(&mut Display) -> anyhow::Result<()>,
+        C: FnMut(&mut Monitor) -> anyhow::Result<()>,
     {
         if let Ok(index) = name.parse::<usize>() {
-            return callback(&mut self.displays[index]);
+            return callback(&mut self.monitors[index]);
         }
 
         let mut has_match = false;
-        for display in &mut self.displays {
+        for monitor in &mut self.monitors {
             if self.needs_capabilities {
-                display.ensure_capabilities_as_warn();
+                monitor.ensure_capabilities_as_warn();
             }
-            if !display.contains(name) {
+            if !monitor.contains(name) {
                 continue;
             }
             has_match = true;
-            callback(display)?;
+            callback(monitor)?;
         }
         if has_match {
             return Ok(());
@@ -266,22 +266,22 @@ impl Cli {
             input_sources.push(InputSource::raw_from_str(value)?);
         }
         let mut set_index = self.set_index;
-        let result = self.for_each(name, |display: &mut Display| {
+        let result = self.for_each(name, |monitor: &mut Monitor| {
             if set_index.is_none() {
-                let current_input_source = display.get_current_input_source()?;
+                let current_input_source = monitor.get_current_input_source()?;
                 set_index = Some(Self::compute_toggle_set_index(
                     current_input_source,
                     &input_sources,
                 ));
                 debug!(
-                    "Set = {} (because {display}.InputSource is {})",
+                    "Set = {} (because {monitor}.InputSource is {})",
                     set_index.unwrap(),
                     InputSource::str_from_raw(current_input_source)
                 );
             }
             let used_index = set_index.unwrap().min(input_sources.len() - 1);
             let input_source = input_sources[used_index];
-            display.set_current_input_source(input_source)
+            monitor.set_current_input_source(input_source)
         });
         self.set_index = set_index;
         result
@@ -293,25 +293,25 @@ impl Cli {
             return self.toggle(name, &toggle_values);
         }
         let input_source = InputSource::raw_from_str(value)?;
-        self.for_each(name, |display: &mut Display| {
-            display.set_current_input_source(input_source)
+        self.for_each(name, |monitor: &mut Monitor| {
+            monitor.set_current_input_source(input_source)
         })
     }
 
     fn print_list(self: &mut Cli) -> anyhow::Result<()> {
-        for (index, display) in (&mut self.displays).into_iter().enumerate() {
+        for (index, monitor) in (&mut self.monitors).into_iter().enumerate() {
             if self.needs_capabilities {
-                display.ensure_capabilities_as_warn();
+                monitor.ensure_capabilities_as_warn();
             }
-            println!("{index}: {}", display.to_long_string());
-            debug!("{:?}", display);
+            println!("{index}: {}", monitor.to_long_string());
+            debug!("{:?}", monitor);
         }
         Ok(())
     }
 
     fn sleep_if_needed(self: &mut Cli) {
-        for display in &mut self.displays {
-            display.sleep_if_needed();
+        for monitor in &mut self.monitors {
+            monitor.sleep_if_needed();
         }
         debug!("All sleep() done");
     }
@@ -329,10 +329,10 @@ impl Cli {
                 continue;
             }
 
-            self.for_each(&arg, |display| {
+            self.for_each(&arg, |monitor| {
                 has_valid_args = true;
-                println!("{}", display.to_long_string());
-                debug!("{:?}", display);
+                println!("{}", monitor.to_long_string());
+                debug!("{:?}", monitor);
                 Ok(())
             })?;
         }
@@ -348,7 +348,7 @@ fn main() -> anyhow::Result<()> {
     let mut cli: Cli = Cli::parse();
     cli.init_logger();
     set_dry_run(cli.dry_run);
-    cli.displays = Display::enumerate();
+    cli.monitors = Monitor::enumerate();
     cli.run()
 }
 
