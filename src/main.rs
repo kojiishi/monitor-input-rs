@@ -92,30 +92,30 @@ impl Monitor {
             .collect()
     }
 
-    fn update_capabilities(self: &mut Monitor) -> anyhow::Result<()> {
+    fn update_capabilities(&mut self) -> anyhow::Result<()> {
         debug!("update_capabilities: {}", self);
         self.is_capabilities_updated = true;
         self.ddc_hi_display.update_capabilities()
     }
 
-    fn ensure_capabilities(self: &mut Monitor) -> anyhow::Result<()> {
+    fn ensure_capabilities(&mut self) -> anyhow::Result<()> {
         if self.is_capabilities_updated {
             return Ok(());
         }
         self.update_capabilities()
     }
 
-    fn ensure_capabilities_as_warn(self: &mut Monitor) {
+    fn ensure_capabilities_as_warn(&mut self) {
         if let Err(e) = self.ensure_capabilities() {
             warn!("{}: Failed to update capabilities: {}", self, e);
         }
     }
 
-    fn contains(self: &Monitor, name: &str) -> bool {
+    fn contains(&self, name: &str) -> bool {
         self.ddc_hi_display.info.id.contains(name)
     }
 
-    fn feature_code(self: &Monitor, feature_code: FeatureCode) -> FeatureCode {
+    fn feature_code(&self, feature_code: FeatureCode) -> FeatureCode {
         // TODO: `mccs_database` is initialized by `display.update_capabilities()`
         // which is quite slow, and it seems to work without this.
         // See also https://github.com/mjkoo/monitor-switch/blob/master/src/main.rs.
@@ -125,12 +125,12 @@ impl Monitor {
         feature_code
     }
 
-    fn get_current_input_source(self: &mut Monitor) -> anyhow::Result<u8> {
+    fn get_current_input_source(&mut self) -> anyhow::Result<u8> {
         let feature_code: FeatureCode = self.feature_code(INPUT_SELECT);
         Ok(self.ddc_hi_display.handle.get_vcp_feature(feature_code)?.sl)
     }
 
-    fn set_current_input_source(self: &mut Monitor, value: InputSourceRaw) -> anyhow::Result<()> {
+    fn set_current_input_source(&mut self, value: InputSourceRaw) -> anyhow::Result<()> {
         if is_dry_run() {
             info!(
                 "{}.InputSource = {} (dry-run)",
@@ -151,7 +151,7 @@ impl Monitor {
             .inspect(|_| self.needs_sleep = true)
     }
 
-    fn sleep_if_needed(self: &mut Monitor) {
+    fn sleep_if_needed(&mut self) {
         if self.needs_sleep {
             debug!("{}.sleep()", self);
             self.needs_sleep = false;
@@ -160,7 +160,7 @@ impl Monitor {
         }
     }
 
-    fn to_long_string(self: &mut Monitor) -> String {
+    fn to_long_string(&mut self) -> String {
         let mut lines = Vec::new();
         lines.push(self.to_string());
         let input_source = self.get_current_input_source();
@@ -209,7 +209,7 @@ struct Cli {
 }
 
 impl Cli {
-    fn init_logger(self: &Cli) {
+    fn init_logger(&self) {
         simplelog::CombinedLogger::init(vec![simplelog::TermLogger::new(
             if self.verbose {
                 simplelog::LevelFilter::Debug
@@ -223,7 +223,7 @@ impl Cli {
         .unwrap();
     }
 
-    fn for_each<C>(self: &mut Cli, name: &str, mut callback: C) -> anyhow::Result<()>
+    fn for_each<C>(&mut self, name: &str, mut callback: C) -> anyhow::Result<()>
     where
         C: FnMut(&mut Monitor) -> anyhow::Result<()>,
     {
@@ -260,7 +260,7 @@ impl Cli {
             .map_or(0, |i| i + 1)
     }
 
-    fn toggle(self: &mut Cli, name: &str, values: &[&str]) -> anyhow::Result<()> {
+    fn toggle(&mut self, name: &str, values: &[&str]) -> anyhow::Result<()> {
         let mut input_sources: Vec<InputSourceRaw> = vec![];
         for value in values {
             input_sources.push(InputSource::raw_from_str(value)?);
@@ -287,7 +287,7 @@ impl Cli {
         result
     }
 
-    fn set(self: &mut Cli, name: &str, value: &str) -> anyhow::Result<()> {
+    fn set(&mut self, name: &str, value: &str) -> anyhow::Result<()> {
         let toggle_values: Vec<&str> = value.split(',').collect();
         if toggle_values.len() > 1 {
             return self.toggle(name, &toggle_values);
@@ -298,7 +298,7 @@ impl Cli {
         })
     }
 
-    fn print_list(self: &mut Cli) -> anyhow::Result<()> {
+    fn print_list(&mut self) -> anyhow::Result<()> {
         for (index, monitor) in (&mut self.monitors).into_iter().enumerate() {
             if self.needs_capabilities {
                 monitor.ensure_capabilities_as_warn();
@@ -309,7 +309,7 @@ impl Cli {
         Ok(())
     }
 
-    fn sleep_if_needed(self: &mut Cli) {
+    fn sleep_if_needed(&mut self) {
         for monitor in &mut self.monitors {
             monitor.sleep_if_needed();
         }
@@ -318,7 +318,7 @@ impl Cli {
 
     const RE_SET_PATTERN: &str = r"^([^=]+)=(.+)$";
 
-    fn run(self: &mut Cli) -> anyhow::Result<()> {
+    fn run(&mut self) -> anyhow::Result<()> {
         let re_set = Regex::new(Self::RE_SET_PATTERN).unwrap();
         let mut has_valid_args = false;
         let args = self.args.clone();
