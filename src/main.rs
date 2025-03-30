@@ -225,22 +225,22 @@ impl Cli {
 
     fn for_each<C>(&mut self, name: &str, mut callback: C) -> anyhow::Result<()>
     where
-        C: FnMut(&mut Monitor) -> anyhow::Result<()>,
+        C: FnMut(usize, &mut Monitor) -> anyhow::Result<()>,
     {
         if let Ok(index) = name.parse::<usize>() {
-            return callback(&mut self.monitors[index]);
+            return callback(index, &mut self.monitors[index]);
         }
 
         let mut has_match = false;
-        for monitor in &mut self.monitors {
+        for (index, monitor) in (&mut self.monitors).into_iter().enumerate() {
             if self.needs_capabilities {
                 monitor.ensure_capabilities_as_warn();
             }
-            if !monitor.contains(name) {
+            if name.len() > 0 && !monitor.contains(name) {
                 continue;
             }
             has_match = true;
-            callback(monitor)?;
+            callback(index, monitor)?;
         }
         if has_match {
             return Ok(());
@@ -266,7 +266,7 @@ impl Cli {
             input_sources.push(InputSource::raw_from_str(value)?);
         }
         let mut set_index = self.set_index;
-        let result = self.for_each(name, |monitor: &mut Monitor| {
+        let result = self.for_each(name, |_, monitor: &mut Monitor| {
             if set_index.is_none() {
                 let current_input_source = monitor.get_current_input_source()?;
                 set_index = Some(Self::compute_toggle_set_index(
@@ -293,20 +293,21 @@ impl Cli {
             return self.toggle(name, &toggle_values);
         }
         let input_source = InputSource::raw_from_str(value)?;
-        self.for_each(name, |monitor: &mut Monitor| {
+        self.for_each(name, |_, monitor: &mut Monitor| {
             monitor.set_current_input_source(input_source)
         })
     }
 
-    fn print_list(&mut self) -> anyhow::Result<()> {
-        for (index, monitor) in (&mut self.monitors).into_iter().enumerate() {
-            if self.needs_capabilities {
+    fn print_list(&mut self, name: &str) -> anyhow::Result<()> {
+        let needs_capabilities = self.needs_capabilities;
+        self.for_each(name, |index, monitor| {
+            if needs_capabilities {
                 monitor.ensure_capabilities_as_warn();
             }
             println!("{index}: {}", monitor.to_long_string());
             debug!("{:?}", monitor);
-        }
-        Ok(())
+            Ok(())
+        })
     }
 
     fn sleep_if_needed(&mut self) {
@@ -329,15 +330,11 @@ impl Cli {
                 continue;
             }
 
-            self.for_each(&arg, |monitor| {
-                has_valid_args = true;
-                println!("{}", monitor.to_long_string());
-                debug!("{:?}", monitor);
-                Ok(())
-            })?;
+            self.print_list(&arg)?;
+            has_valid_args = true;
         }
         if !has_valid_args {
-            self.print_list()?;
+            self.print_list("")?;
         }
         self.sleep_if_needed();
         Ok(())
