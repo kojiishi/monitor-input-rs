@@ -89,22 +89,14 @@ impl Monitor {
     }
 
     fn update_capabilities(&mut self) -> anyhow::Result<()> {
-        debug!("update_capabilities: {}", self);
-        self.is_capabilities_updated = true;
-        self.ddc_hi_display.update_capabilities()
-    }
-
-    fn ensure_capabilities(&mut self) -> anyhow::Result<()> {
         if self.is_capabilities_updated {
             return Ok(());
         }
-        self.update_capabilities()
-    }
-
-    fn ensure_capabilities_as_warn(&mut self) {
-        if let Err(e) = self.ensure_capabilities() {
-            warn!("{}: Failed to update capabilities: {}", self, e);
-        }
+        self.is_capabilities_updated = true;
+        debug!("update_capabilities: {}", self);
+        self.ddc_hi_display
+            .update_capabilities()
+            .inspect_err(|e| warn!("{self}: Failed to update capabilities: {e}"))
     }
 
     fn contains(&self, name: &str) -> bool {
@@ -230,7 +222,8 @@ impl Cli {
         let mut has_match = false;
         for (index, monitor) in (&mut self.monitors).into_iter().enumerate() {
             if self.needs_capabilities {
-                monitor.ensure_capabilities_as_warn();
+                // This may fail in some cases. Print warning but keep looking.
+                let _ = monitor.update_capabilities();
             }
             if name.len() > 0 && !monitor.contains(name) {
                 continue;
@@ -295,11 +288,7 @@ impl Cli {
     }
 
     fn print_list(&mut self, name: &str) -> anyhow::Result<()> {
-        let needs_capabilities = self.needs_capabilities;
         self.for_each(name, |index, monitor| {
-            if needs_capabilities {
-                monitor.ensure_capabilities_as_warn();
-            }
             println!("{index}: {}", monitor.to_long_string());
             debug!("{:?}", monitor);
             Ok(())
