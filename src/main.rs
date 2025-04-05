@@ -99,6 +99,14 @@ impl Monitor {
             .inspect_err(|e| warn!("{self}: Failed to update capabilities: {e}"))
     }
 
+    fn contains_backend(&self, backend: &str) -> bool {
+        self.ddc_hi_display
+            .info
+            .backend
+            .to_string()
+            .contains(backend)
+    }
+
     fn contains(&self, name: &str) -> bool {
         self.ddc_hi_display.info.id.contains(name)
     }
@@ -162,6 +170,7 @@ impl Monitor {
         if let Some(model) = &self.ddc_hi_display.info.model_name {
             lines.push(format!("Model: {}", model));
         }
+        lines.push(format!("Backend: {}", self.ddc_hi_display.info.backend));
         return lines.join("\n    ");
     }
 }
@@ -174,6 +183,10 @@ impl Monitor {
 struct Cli {
     #[arg(skip)]
     monitors: Vec<Monitor>,
+
+    #[arg(short, long)]
+    /// Filter by the backend name.
+    backend: Option<String>,
 
     #[arg(id = "capabilities", short, long)]
     /// Get capabilities from the display monitors.
@@ -209,6 +222,14 @@ impl Cli {
             simplelog::ColorChoice::Auto,
         )])
         .unwrap();
+    }
+
+    fn apply_filters(&mut self) -> anyhow::Result<()> {
+        if let Some(backend_str) = &self.backend {
+            self.monitors
+                .retain(|monitor| monitor.contains_backend(backend_str));
+        }
+        Ok(())
     }
 
     fn for_each<C>(&mut self, name: &str, mut callback: C) -> anyhow::Result<()>
@@ -331,6 +352,7 @@ fn main() -> anyhow::Result<()> {
     cli.init_logger();
     Monitor::set_dry_run(cli.dry_run);
     cli.monitors = Monitor::enumerate();
+    cli.apply_filters()?;
     cli.run()
 }
 
