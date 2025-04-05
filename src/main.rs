@@ -46,18 +46,6 @@ const INPUT_SELECT: FeatureCode = 0x60;
 
 static mut DRY_RUN: bool = false;
 
-fn is_dry_run() -> bool {
-    unsafe {
-        return DRY_RUN;
-    }
-}
-
-fn set_dry_run(value: bool) {
-    unsafe {
-        DRY_RUN = value;
-    }
-}
-
 struct Monitor {
     ddc_hi_display: ddc_hi::Display,
     is_capabilities_updated: bool,
@@ -90,6 +78,14 @@ impl Monitor {
             .into_iter()
             .map(|d| Monitor::new(d))
             .collect()
+    }
+
+    fn is_dry_run() -> bool {
+        unsafe { return DRY_RUN }
+    }
+
+    fn set_dry_run(value: bool) {
+        unsafe { DRY_RUN = value }
     }
 
     fn update_capabilities(&mut self) -> anyhow::Result<()> {
@@ -131,7 +127,7 @@ impl Monitor {
     }
 
     fn set_current_input_source(&mut self, value: InputSourceRaw) -> anyhow::Result<()> {
-        if is_dry_run() {
+        if Self::is_dry_run() {
             info!(
                 "{}.InputSource = {} (dry-run)",
                 self,
@@ -344,7 +340,7 @@ impl Cli {
 fn main() -> anyhow::Result<()> {
     let mut cli: Cli = Cli::parse();
     cli.init_logger();
-    set_dry_run(cli.dry_run);
+    Monitor::set_dry_run(cli.dry_run);
     cli.monitors = Monitor::enumerate();
     cli.run()
 }
