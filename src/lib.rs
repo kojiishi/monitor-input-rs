@@ -157,11 +157,15 @@ impl Monitor {
         self.ddc_hi_display.info.id.contains(name)
     }
 
+    fn feature_descriptor(&self, feature_code: FeatureCode) -> Option<&mccs_db::Descriptor> {
+        self.ddc_hi_display.info.mccs_database.get(feature_code)
+    }
+
     fn feature_code(&self, feature_code: FeatureCode) -> FeatureCode {
         // TODO: `mccs_database` is initialized by `display.update_capabilities()`
         // which is quite slow, and it seems to work without this.
         // See also https://github.com/mjkoo/monitor-switch/blob/master/src/main.rs.
-        if let Some(feature) = self.ddc_hi_display.info.mccs_database.get(feature_code) {
+        if let Some(feature) = self.feature_descriptor(feature_code) {
             return feature.code;
         }
         feature_code
@@ -198,9 +202,9 @@ impl Monitor {
     /// Get all input sources.
     /// Requires to call [`Monitor::update_capabilities()`] beforehand.
     pub fn input_sources(&mut self) -> Option<Vec<InputSourceRaw>> {
-        if let Some(mccs_descriptor) = self.ddc_hi_display.info.mccs_database.get(INPUT_SELECT) {
-            debug!("{self}.INPUT_SELECT = {mccs_descriptor:?}");
-            if let mccs_db::ValueType::NonContinuous { values, .. } = &mccs_descriptor.ty {
+        if let Some(feature) = self.feature_descriptor(INPUT_SELECT) {
+            debug!("{self}.INPUT_SELECT = {feature:?}");
+            if let mccs_db::ValueType::NonContinuous { values, .. } = &feature.ty {
                 return Some(values.keys().cloned().collect());
             }
         }
@@ -230,11 +234,10 @@ impl Monitor {
                 Err(e) => e.to_string(),
             }
         ));
-        let input_sources = self.input_sources();
-        if let Some(values) = input_sources {
+        if let Some(input_sources) = self.input_sources() {
             lines.push(format!(
                 "Input Sources: {}",
-                values
+                input_sources
                     .iter()
                     .map(|value| InputSource::str_from_raw(*value))
                     .collect::<Vec<_>>()
