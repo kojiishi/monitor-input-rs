@@ -121,7 +121,7 @@ impl Monitor {
         feature_code
     }
 
-    pub fn get_current_input_source(&mut self) -> anyhow::Result<InputSourceRaw> {
+    pub fn current_input_source(&mut self) -> anyhow::Result<InputSourceRaw> {
         let feature_code: FeatureCode = self.feature_code(INPUT_SELECT);
         Ok(self.ddc_hi_display.handle.get_vcp_feature(feature_code)?.sl)
     }
@@ -168,7 +168,7 @@ impl Monitor {
     pub fn to_long_string(&mut self) -> String {
         let mut lines = Vec::new();
         lines.push(self.to_string());
-        let input_source = self.get_current_input_source();
+        let input_source = self.current_input_source();
         lines.push(format!(
             "Input Source: {}",
             match input_source {
@@ -298,7 +298,7 @@ impl Cli {
         let mut set_index = self.set_index;
         let result = self.for_each(name, |_, monitor: &mut Monitor| {
             if set_index.is_none() {
-                let current_input_source = monitor.get_current_input_source()?;
+                let current_input_source = monitor.current_input_source()?;
                 set_index = Some(Self::compute_toggle_set_index(
                     current_input_source,
                     &input_sources,
