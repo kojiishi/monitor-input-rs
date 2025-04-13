@@ -8,14 +8,14 @@ use regex::Regex;
 use strum_macros::{AsRefStr, EnumString, FromRepr};
 
 /// The raw representation of an input source value.
-/// Also see [`InputSource`].
+/// See also [`InputSource`].
 pub type InputSourceRaw = u8;
 
-#[derive(Debug, PartialEq, AsRefStr, EnumString, FromRepr)]
+#[derive(Copy, Clone, Debug, PartialEq, AsRefStr, EnumString, FromRepr)]
 #[repr(u8)]
 #[strum(ascii_case_insensitive)]
 /// An input source value.
-/// Also see [`InputSourceRaw`].
+/// See also [`InputSourceRaw`].
 pub enum InputSource {
     #[strum(serialize = "DP1")]
     DisplayPort1 = 0x0F,
@@ -28,13 +28,43 @@ pub enum InputSource {
 }
 
 impl InputSource {
+    /// Get [`InputSourceRaw`].
+    /// ```
+    /// # use monitor_input::InputSource;
+    /// assert_eq!(InputSource::Hdmi1.as_raw(), 17);
+    /// ```
+    pub fn as_raw(self) -> InputSourceRaw {
+        self as InputSourceRaw
+    }
+
     /// Get [`InputSourceRaw`] from a string.
+    /// The string is either the name of an [`InputSource`] or a number.
+    /// # Examples
+    /// ```
+    /// # use monitor_input::{InputSource,InputSourceRaw};
+    /// // Input strings are either an [`InputSource`] or a number.
+    /// assert_eq!(
+    ///     InputSource::raw_from_str("Hdmi1").unwrap(),
+    ///     InputSource::Hdmi1.as_raw()
+    /// );
+    /// assert_eq!(InputSource::raw_from_str("27").unwrap(), 27);
+    ///
+    /// // Undefined string will be an error.
+    /// assert!(InputSource::raw_from_str("xyz").is_err());
+    /// // The error message should contain the original string.
+    /// assert!(
+    ///     InputSource::raw_from_str("xyz")
+    ///         .unwrap_err()
+    ///         .to_string()
+    ///         .contains("xyz")
+    /// );
+    /// ```
     pub fn raw_from_str(input: &str) -> anyhow::Result<InputSourceRaw> {
         if let Ok(value) = input.parse::<InputSourceRaw>() {
             return Ok(value);
         }
         InputSource::from_str(input)
-            .map(|value| value as InputSourceRaw)
+            .map(|value| value.as_raw())
             .with_context(|| format!("\"{input}\" is not a valid input source"))
     }
 
@@ -82,6 +112,7 @@ impl Monitor {
     }
 
     /// Enumerate all display monitors.
+    /// See also [`ddc_hi::Display::enumerate()`].
     pub fn enumerate() -> Vec<Self> {
         ddc_hi::Display::enumerate()
             .into_iter()
@@ -169,14 +200,14 @@ impl Monitor {
     pub fn input_sources(&mut self) -> Option<Vec<InputSourceRaw>> {
         if let Some(mccs_descriptor) = self.ddc_hi_display.info.mccs_database.get(INPUT_SELECT) {
             if let mccs_db::ValueType::NonContinuous { values, .. } = &mccs_descriptor.ty {
-                return Some(values.iter().map(|(v, _)| *v as InputSourceRaw).collect());
+                return Some(values.iter().map(|(v, _)| *v).collect());
             }
         }
         None
     }
 
     /// Sleep if any previous DDC commands need time to be executed.
-    /// Also see [`ddc::DdcHost::sleep()`].
+    /// See also [`ddc_hi::DdcHost::sleep()`].
     pub fn sleep_if_needed(&mut self) {
         if self.needs_sleep {
             debug!("{}.sleep()", self);
@@ -194,7 +225,7 @@ impl Monitor {
         lines.push(format!(
             "Input Source: {}",
             match input_source {
-                Ok(value) => InputSource::str_from_raw(value as InputSourceRaw),
+                Ok(value) => InputSource::str_from_raw(value),
                 Err(e) => e.to_string(),
             }
         ));
@@ -221,6 +252,27 @@ impl Monitor {
 #[command(version, about)]
 /// A command line tool to change display monitors' input sources via DDC/CI.
 ///
+/// # Examples
+/// ```
+/// # use monitor_input::Cli;
+/// fn run_cli(args: Vec<String>) -> anyhow::Result<()> {
+///     let mut cli = Cli::new();
+///     cli.args = args;
+///     cli.run()
+/// }
+/// ```
+/// To setup [`Cli`] from the command line arguments:
+/// ```no_run
+/// use clap::Parser;
+/// use monitor_input::{Cli,Monitor};
+///
+/// fn main() -> anyhow::Result<()> {
+///     let mut cli = Cli::parse();
+///     cli.init_logger();
+///     cli.monitors = Monitor::enumerate();
+///     cli.run()
+/// }
+/// ```
 /// See <https://github.com/kojiishi/monitor-input-rs> for more details.
 pub struct Cli {
     #[arg(skip)]
@@ -254,6 +306,14 @@ pub struct Cli {
 }
 
 impl Cli {
+    /// Construct an instance with display monitors from [`Monitor::enumerate()`].
+    pub fn new() -> Self {
+        Cli {
+            monitors: Monitor::enumerate(),
+            ..Default::default()
+        }
+    }
+
     /// Initialize the logging.
     /// The configurations depend on [`Cli::verbose`].
     pub fn init_logger(&self) {
@@ -419,24 +479,6 @@ mod tests {
         assert_eq!(InputSource::from_str("dp2"), Ok(InputSource::DisplayPort2));
         // Test failures.
         assert!(InputSource::from_str("xyz").is_err());
-    }
-
-    #[test]
-    fn input_source_raw_from_str() {
-        assert_eq!(InputSource::raw_from_str("27").unwrap(), 27);
-        // Upper-compatible with `from_str`.
-        assert_eq!(
-            InputSource::raw_from_str("Hdmi1").unwrap(),
-            InputSource::Hdmi1 as InputSourceRaw
-        );
-        // Test failures.
-        assert!(InputSource::raw_from_str("xyz").is_err());
-        assert!(
-            InputSource::raw_from_str("xyz")
-                .unwrap_err()
-                .to_string()
-                .contains("xyz")
-        );
     }
 
     #[test]
