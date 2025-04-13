@@ -41,7 +41,7 @@ impl InputSource {
     /// The string is either the name of an [`InputSource`] or a number.
     /// # Examples
     /// ```
-    /// # use monitor_input::{InputSource,InputSourceRaw};
+    /// # use monitor_input::InputSource;
     /// // Input strings are either an [`InputSource`] or a number.
     /// assert_eq!(
     ///     InputSource::raw_from_str("Hdmi1").unwrap(),
@@ -69,6 +69,13 @@ impl InputSource {
     }
 
     /// Get a string from [`InputSourceRaw`].
+    /// # Examples
+    /// ```
+    /// # use monitor_input::InputSource;
+    /// assert_eq!(InputSource::str_from_raw(InputSource::Hdmi1.as_raw()), "Hdmi1");
+    /// assert_eq!(InputSource::str_from_raw(17), "Hdmi1");
+    /// assert_eq!(InputSource::str_from_raw(255), "255");
+    /// ```
     pub fn str_from_raw(value: InputSourceRaw) -> String {
         match InputSource::from_repr(value) {
             Some(input_source) => input_source.as_ref().to_string(),
@@ -83,6 +90,12 @@ const INPUT_SELECT: FeatureCode = 0x60;
 static mut DRY_RUN: bool = false;
 
 /// Represents a display monitor.
+/// # Examples
+/// ```no_run
+/// # use monitor_input::{InputSource,Monitor};
+/// let mut monitors = Monitor::enumerate();
+/// monitors[0].set_current_input_source(InputSource::UsbC1.as_raw());
+/// ```
 pub struct Monitor {
     ddc_hi_display: ddc_hi::Display,
     is_capabilities_updated: bool,
