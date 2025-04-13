@@ -2,8 +2,8 @@
 [![crate-badge]][crate]
 [![docs-badge]][docs]
 
-[CI-badge]: https://github.com/google/budoux-extension/actions/workflows/ci.yml/badge.svg
-[CI]: https://github.com/kojiishi/monitor-input-rs/actions/workflows/ci.yml
+[CI-badge]: https://github.com/kojiishi/monitor-input-rs/actions/workflows/rust.yml/badge.svg
+[CI]: https://github.com/kojiishi/monitor-input-rs/actions/workflows/rust.yml
 [crate-badge]: https://img.shields.io/crates/v/monitor-input.svg
 [crate]: https://crates.io/crates/monitor-input
 [docs-badge]: https://docs.rs/monitor-input/badge.svg
