@@ -283,7 +283,12 @@ impl Cli {
         C: FnMut(usize, &mut Monitor) -> anyhow::Result<()>,
     {
         if let Ok(index) = name.parse::<usize>() {
-            return callback(index, &mut self.monitors[index]);
+            let monitor = &mut self.monitors[index];
+            if self.needs_capabilities {
+                // This may fail in some cases. Print warning but keep looking.
+                let _ = monitor.update_capabilities();
+            }
+            return callback(index, monitor);
         }
 
         let mut has_match = false;
