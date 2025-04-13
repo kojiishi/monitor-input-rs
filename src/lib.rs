@@ -7,11 +7,15 @@ use log::*;
 use regex::Regex;
 use strum_macros::{AsRefStr, EnumString, FromRepr};
 
+/// The raw representation of an input source value.
+/// Also see [`InputSource`].
 pub type InputSourceRaw = u8;
 
 #[derive(Debug, PartialEq, AsRefStr, EnumString, FromRepr)]
 #[repr(u8)]
 #[strum(ascii_case_insensitive)]
+/// An input source value.
+/// Also see [`InputSourceRaw`].
 pub enum InputSource {
     #[strum(serialize = "DP1")]
     DisplayPort1 = 0x0F,
@@ -24,6 +28,7 @@ pub enum InputSource {
 }
 
 impl InputSource {
+    /// Get [`InputSourceRaw`] from a string.
     pub fn raw_from_str(input: &str) -> anyhow::Result<InputSourceRaw> {
         if let Ok(value) = input.parse::<InputSourceRaw>() {
             return Ok(value);
@@ -33,6 +38,7 @@ impl InputSource {
             .with_context(|| format!("\"{input}\" is not a valid input source"))
     }
 
+    /// Get a string from [`InputSourceRaw`].
     pub fn str_from_raw(value: InputSourceRaw) -> String {
         match InputSource::from_repr(value) {
             Some(input_source) => input_source.as_ref().to_string(),
@@ -46,6 +52,7 @@ const INPUT_SELECT: FeatureCode = 0x60;
 
 static mut DRY_RUN: bool = false;
 
+/// Represents a display monitor.
 pub struct Monitor {
     ddc_hi_display: ddc_hi::Display,
     is_capabilities_updated: bool,
@@ -65,6 +72,7 @@ impl std::fmt::Debug for Monitor {
 }
 
 impl Monitor {
+    /// Create an instance from [`ddc_hi::Display`].
     pub fn new(ddc_hi_display: ddc_hi::Display) -> Self {
         Monitor {
             ddc_hi_display: ddc_hi_display,
@@ -73,6 +81,7 @@ impl Monitor {
         }
     }
 
+    /// Enumerate all display monitors.
     pub fn enumerate() -> Vec<Self> {
         ddc_hi::Display::enumerate()
             .into_iter()
@@ -80,14 +89,20 @@ impl Monitor {
             .collect()
     }
 
-    pub fn is_dry_run() -> bool {
+    fn is_dry_run() -> bool {
         unsafe { return DRY_RUN }
     }
 
+    /// Set the dry-run mode.
+    /// When in dry-run mode, functions that are supposed to make changes
+    /// don't actually make the changes.
     pub fn set_dry_run(value: bool) {
         unsafe { DRY_RUN = value }
     }
 
+    /// Updates the display info with data retrieved from the device's
+    /// reported capabilities.
+    /// See also [`ddc_hi::Display::update_capabilities()`].
     pub fn update_capabilities(&mut self) -> anyhow::Result<()> {
         if self.is_capabilities_updated {
             return Ok(());
@@ -121,11 +136,13 @@ impl Monitor {
         feature_code
     }
 
+    /// Get the current input source.
     pub fn current_input_source(&mut self) -> anyhow::Result<InputSourceRaw> {
         let feature_code: FeatureCode = self.feature_code(INPUT_SELECT);
         Ok(self.ddc_hi_display.handle.get_vcp_feature(feature_code)?.sl)
     }
 
+    /// Set the current input source.
     pub fn set_current_input_source(&mut self, value: InputSourceRaw) -> anyhow::Result<()> {
         if Self::is_dry_run() {
             info!(
@@ -147,15 +164,19 @@ impl Monitor {
             .inspect(|_| self.needs_sleep = true)
     }
 
-    pub fn input_sources(&mut self) -> Vec<InputSourceRaw> {
+    /// Get all input sources.
+    /// Requires to call [`Monitor::update_capabilities()`] beforehand.
+    pub fn input_sources(&mut self) -> Option<Vec<InputSourceRaw>> {
         if let Some(mccs_descriptor) = self.ddc_hi_display.info.mccs_database.get(INPUT_SELECT) {
             if let mccs_db::ValueType::NonContinuous { values, .. } = &mccs_descriptor.ty {
-                return values.iter().map(|(v, _)| *v as InputSourceRaw).collect();
+                return Some(values.iter().map(|(v, _)| *v as InputSourceRaw).collect());
             }
         }
-        vec![]
+        None
     }
 
+    /// Sleep if any previous DDC commands need time to be executed.
+    /// Also see [`ddc::DdcHost::sleep()`].
     pub fn sleep_if_needed(&mut self) {
         if self.needs_sleep {
             debug!("{}.sleep()", self);
@@ -165,6 +186,7 @@ impl Monitor {
         }
     }
 
+    /// Get a multi-line descriptive string.
     pub fn to_long_string(&mut self) -> String {
         let mut lines = Vec::new();
         lines.push(self.to_string());
@@ -177,10 +199,10 @@ impl Monitor {
             }
         ));
         let input_sources = self.input_sources();
-        if !input_sources.is_empty() {
+        if let Some(values) = input_sources {
             lines.push(format!(
                 "Input Sources: {}",
-                input_sources
+                values
                     .iter()
                     .map(|value| InputSource::str_from_raw(*value))
                     .collect::<Vec<_>>()
@@ -199,9 +221,11 @@ impl Monitor {
 #[command(version, about)]
 /// A command line tool to change display monitors' input sources via DDC/CI.
 ///
-/// See https://github.com/kojiishi/monitor-input-rs for more details.
+/// See <https://github.com/kojiishi/monitor-input-rs> for more details.
 pub struct Cli {
     #[arg(skip)]
+    /// The list of [`Monitor`]s to run the command line tool on.
+    /// This field is usually initialized to [`Monitor::enumerate()`].
     pub monitors: Vec<Monitor>,
 
     #[arg(short, long)]
@@ -230,6 +254,8 @@ pub struct Cli {
 }
 
 impl Cli {
+    /// Initialize the logging.
+    /// The configurations depend on [`Cli::verbose`].
     pub fn init_logger(&self) {
         simplelog::CombinedLogger::init(vec![simplelog::TermLogger::new(
             if self.verbose {
@@ -244,7 +270,7 @@ impl Cli {
         .unwrap();
     }
 
-    pub fn apply_filters(&mut self) -> anyhow::Result<()> {
+    fn apply_filters(&mut self) -> anyhow::Result<()> {
         if let Some(backend_str) = &self.backend {
             self.monitors
                 .retain(|monitor| monitor.contains_backend(backend_str));
@@ -345,7 +371,11 @@ impl Cli {
 
     const RE_SET_PATTERN: &str = r"^([^=]+)=(.+)$";
 
+    /// Run the command line tool.
     pub fn run(&mut self) -> anyhow::Result<()> {
+        Monitor::set_dry_run(self.dry_run);
+        self.apply_filters()?;
+
         let re_set = Regex::new(Self::RE_SET_PATTERN).unwrap();
         let mut has_valid_args = false;
         let args = self.args.clone();
