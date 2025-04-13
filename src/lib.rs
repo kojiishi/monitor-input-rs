@@ -199,8 +199,9 @@ impl Monitor {
     /// Requires to call [`Monitor::update_capabilities()`] beforehand.
     pub fn input_sources(&mut self) -> Option<Vec<InputSourceRaw>> {
         if let Some(mccs_descriptor) = self.ddc_hi_display.info.mccs_database.get(INPUT_SELECT) {
+            debug!("{self}.INPUT_SELECT = {mccs_descriptor:?}");
             if let mccs_db::ValueType::NonContinuous { values, .. } = &mccs_descriptor.ty {
-                return Some(values.iter().map(|(v, _)| *v).collect());
+                return Some(values.keys().cloned().collect());
             }
         }
         None
