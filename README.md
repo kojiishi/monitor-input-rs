@@ -13,7 +13,7 @@
 
 A command line tool to change display monitors' input sources via DDC/CI.
 
-# Installation
+# Install
 
 Please [install Rust](https://rustup.rs/) if you haven't done so.
 
@@ -32,9 +32,15 @@ cargo install --git https://github.com/kojiishi/monitor-input-rs
 ## From local checkout
 
 ```shell-session
-cd monitor-input-rs
 cargo install --path .
 ```
+
+## As library
+
+```shell-session
+cargo add monitor-input
+```
+Please see [docs.rs][docs] for the API documentations.
 
 # Usages
 
@@ -61,9 +67,9 @@ Note that a display monitor may be listed twice.
 This happens when there are multiple ways to find display monitors,
 such as by the OS API and by the display driver APIs.
 
-### List display monitors by name
+### Search display monitors by the name
 
-You can list display monitors by the partial match of a string.
+You can list display monitors by the partial match of their names.
 The following example lists all display monitors
 whose name have "Dell",
 without changing their input sources.
@@ -71,28 +77,43 @@ without changing their input sources.
 monitor-input Dell
 ```
 
+### Search by the display monitor index
+
+A number specifies the display monitor by its index.
+```shell-session
+monitor-input 2 3
+```
+The example above lists the 2nd and the 3rd display monitors.
+
 ## Set the input source
+
+You can set the input source
+by appending `=` and the input source name to the search string.
 
 ### Set the input source by name
 ```shell-session
 monitor-input U2723=dp1 P3223=hdmi1
 ```
 
-All display monitors that have the specified name are affected.
-The following example sets the input sources of all displays
+When the name matches multiple display monitors,
+all display monitors are affected.
+The following example sets the input sources of all display monitors
 whose name have "Dell" to `DisplayPort1`.
 ```shell-session
 monitor-input Dell=dp1
 ```
 
 ### Set the input source by the display monitor index
+
+The name can be a number,
+which specifies the display monitor index.
 ```shell-session
 monitor-input 2=usbc2 3=usbc2
 ```
 
 ###  Vendor-specific input sources
 The input source can be a number.
-This is useful when the display has vendor-specific input sources.
+This is useful when the display has non-standard, vendor-specific input sources.
 ```shell-session
 monitor-input U2723=15 P3223=17
 ```
