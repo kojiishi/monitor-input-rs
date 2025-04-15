@@ -13,11 +13,13 @@
 
 A command line tool to change display monitors' input sources via DDC/CI.
 
+The logic is also exposed [as library](#as-library).
+
 # Install
 
 Please [install Rust](https://rustup.rs/) if you haven't done so.
 
-## From [`crates.io`](https://crates.io/crates/monitor-input)
+## From [`crates.io`][crate]
 
 ```shell-session
 cargo install monitor-input
@@ -40,7 +42,7 @@ cargo install --path .
 ```shell-session
 cargo add monitor-input
 ```
-Please see [docs.rs][docs] for the API documentations.
+Please see the [API documentation at docs.rs][docs].
 
 # Usages
 
@@ -55,17 +57,23 @@ The output should look like below.
 ```shell-session
 0: Dell P2415Q
     Input Source: DisplayPort2
+    Backend: winapi
 1: Generic PnP Monitor
     Input Source: 0
+    Backend: winapi
 2: Dell U2723QE
     Input Source: DisplayPort1
+    Backend: winapi
 3: Dell P3223QE
     Input Source: Hdmi1
+    Backend: winapi
 ```
 
 Note that a display monitor may be listed twice.
 This happens when there are multiple ways to find display monitors,
 such as by the OS API and by the display driver APIs.
+In such cases,
+the `-b` option can filter display monitors by the backend name.
 
 ### Search display monitors by the name
 
@@ -83,7 +91,7 @@ A number specifies the display monitor by its index.
 ```shell-session
 monitor-input 2 3
 ```
-The example above lists the 2nd and the 3rd display monitors.
+The example above lists the display monitors of index 2 and 3.
 
 ## Set the input source
 
