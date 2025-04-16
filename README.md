@@ -13,7 +13,11 @@
 
 A command line tool to change display monitors' input sources via DDC/CI.
 
+Supports Windows/Mac/Linux, thanks to the [ddc-hi crate].
+
 The logic is also exposed [as library](#as-library).
+
+[ddc-hi crate]: https://crates.io/crates/ddc-hi
 
 # Install
 
@@ -77,7 +81,7 @@ the `-b` option can filter display monitors by the backend name.
 
 ### Search display monitors by the name
 
-You can list display monitors by the partial match of their names.
+You can list display monitors by specifying part of their names.
 The following example lists all display monitors
 whose name have "Dell",
 without changing their input sources.
@@ -87,7 +91,8 @@ monitor-input Dell
 
 ### Search by the display monitor index
 
-A number specifies the display monitor by its index.
+Searching by the display monitor index is also possible
+by using a number.
 ```shell-session
 monitor-input 2 3
 ```
@@ -95,8 +100,8 @@ The example above lists the display monitors of index 2 and 3.
 
 ## Set the input source
 
-You can set the input source
-by appending `=` and the input source name to the search string.
+To set the input source of display monitors,
+append `=` and the input source name.
 
 ### Set the input source by name
 ```shell-session
