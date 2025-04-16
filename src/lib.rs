@@ -110,7 +110,9 @@ impl std::fmt::Display for Monitor {
 
 impl std::fmt::Debug for Monitor {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{:?}", self.ddc_hi_display.info)
+        f.debug_struct("Monitor")
+            .field("info", &self.ddc_hi_display.info)
+            .finish()
     }
 }
 
@@ -152,7 +154,7 @@ impl Monitor {
             return Ok(());
         }
         self.is_capabilities_updated = true;
-        debug!("update_capabilities: {}", self);
+        debug!("update_capabilities({self})");
         self.ddc_hi_display
             .update_capabilities()
             .inspect_err(|e| warn!("{self}: Failed to update capabilities: {e}"))
@@ -192,19 +194,14 @@ impl Monitor {
 
     /// Set the current input source.
     pub fn set_current_input_source(&mut self, value: InputSourceRaw) -> anyhow::Result<()> {
+        info!(
+            "InputSource({self}) = {value}{mode}",
+            value = InputSource::str_from_raw(value),
+            mode = if Self::is_dry_run() { " (dry-run)" } else { "" }
+        );
         if Self::is_dry_run() {
-            info!(
-                "{}.InputSource = {} (dry-run)",
-                self,
-                InputSource::str_from_raw(value)
-            );
             return Ok(());
         }
-        info!(
-            "{}.InputSource = {}",
-            self,
-            InputSource::str_from_raw(value)
-        );
         let feature_code: FeatureCode = self.feature_code(INPUT_SELECT);
         self.ddc_hi_display
             .handle
@@ -216,7 +213,7 @@ impl Monitor {
     /// Requires to call [`Monitor::update_capabilities()`] beforehand.
     pub fn input_sources(&mut self) -> Option<Vec<InputSourceRaw>> {
         if let Some(feature) = self.feature_descriptor(INPUT_SELECT) {
-            debug!("{self}.INPUT_SELECT = {feature:?}");
+            debug!("INPUT_SELECT({self}) = {feature:?}");
             if let mccs_db::ValueType::NonContinuous { values, .. } = &feature.ty {
                 return Some(values.keys().cloned().collect());
             }
@@ -228,10 +225,10 @@ impl Monitor {
     /// See also [`ddc_hi::DdcHost::sleep()`].
     pub fn sleep_if_needed(&mut self) {
         if self.needs_sleep {
-            debug!("{}.sleep()", self);
+            debug!("sleep({self})");
             self.needs_sleep = false;
             self.ddc_hi_display.handle.sleep();
-            debug!("{}.sleep() done", self);
+            debug!("sleep({self}) done");
         }
     }
 
@@ -384,7 +381,7 @@ impl Cli {
             return Ok(());
         }
 
-        anyhow::bail!("No display monitors found for \"{}\".", name);
+        anyhow::bail!("No display monitors found for \"{name}\".");
     }
 
     fn compute_toggle_set_index(
@@ -412,9 +409,9 @@ impl Cli {
                     &input_sources,
                 ));
                 debug!(
-                    "Set = {} (because {monitor}.InputSource is {})",
-                    set_index.unwrap(),
-                    InputSource::str_from_raw(current_input_source)
+                    "Set = {index} (because InputSource({monitor}) is {input_source})",
+                    index = set_index.unwrap(),
+                    input_source = InputSource::str_from_raw(current_input_source)
                 );
             }
             let used_index = set_index.unwrap().min(input_sources.len() - 1);
