@@ -11,13 +11,13 @@
 
 # monitor-input
 
-A command line tool to change display monitors' input sources via DDC/CI.
+A command line tool to change display monitors' input sources with [DDC/CI].
 
-Supports Windows/Mac/Linux, thanks to the [ddc-hi crate].
+Supports Windows/Mac/Linux.
 
-The logic is also exposed [as library](#as-library).
+Also exposed [as library](#as-library).
 
-[ddc-hi crate]: https://crates.io/crates/ddc-hi
+[DDC/CI]: https://en.wikipedia.org/wiki/Display_Data_Channel
 
 # Install
 
@@ -76,12 +76,13 @@ The output should look like below.
 Note that a display monitor may be listed twice.
 This happens when there are multiple ways to find display monitors,
 such as by the OS API and by the display driver APIs.
-In such cases,
-the `-b` option can filter display monitors by the backend name.
+The `-b` option can filter display monitors
+by the backend name.
 
 ### Search display monitors by the name
 
-You can list display monitors by specifying part of their names.
+You can search display monitors
+by specifying part of their names.
 The following example lists all display monitors
 whose name have "Dell",
 without changing their input sources.
