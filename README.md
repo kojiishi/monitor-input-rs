@@ -21,7 +21,11 @@ Also exposed [as library](#as-library).
 
 # Install
 
-Please [install Rust](https://rustup.rs/) if you haven't done so.
+## Prerequisites
+
+* Please [install Rust] if you haven't done so yet.
+
+[install Rust]: https://rustup.rs/
 
 ## From [`crates.io`][crate]
 
@@ -37,6 +41,7 @@ cargo install --git https://github.com/kojiishi/monitor-input-rs
 
 ## From local checkout
 
+After changing the current directory to the checkout directory:
 ```shell-session
 cargo install --path .
 ```
@@ -53,7 +58,9 @@ Please see the [API documentation at docs.rs][docs].
 ## List display monitors
 
 ### List all display monitors
-You can get the list of displays by running the command without arguments.
+
+Run the command without arguments
+to get the list of all display monitors.
 ```shell-session
 monitor-input
 ```
@@ -76,6 +83,7 @@ The output should look like below.
 Note that a display monitor may be listed twice.
 This happens when there are multiple ways to find display monitors,
 such as by the OS API and by the display driver APIs.
+The `Backend` field indicates how it was found.
 The `-b` option can filter display monitors
 by the backend name.
 
@@ -84,8 +92,7 @@ by the backend name.
 You can search display monitors
 by specifying part of their names.
 The following example lists all display monitors
-whose name have "Dell",
-without changing their input sources.
+whose name have "Dell".
 ```shell-session
 monitor-input Dell
 ```
@@ -95,13 +102,15 @@ monitor-input Dell
 Searching by the display monitor index is also possible
 by using a number.
 ```shell-session
-monitor-input 2 3
+monitor-input 2
 ```
-The example above lists the display monitors of index 2 and 3.
+The example above lists the display monitors of index 2.
+In the example above,
+it's "Dell U2723QE".
 
 ## Set the input source
 
-To set the input source of display monitors,
+To change the input sources of display monitors,
 append `=` and the input source name.
 
 ### Set the input source by name
@@ -110,7 +119,7 @@ monitor-input U2723=dp1 P3223=hdmi1
 ```
 
 When the name matches multiple display monitors,
-all display monitors are affected.
+all matched display monitors are affected.
 The following example sets the input sources of all display monitors
 whose name have "Dell" to `DisplayPort1`.
 ```shell-session
