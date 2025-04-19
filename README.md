@@ -11,7 +11,7 @@
 
 # monitor-input
 
-A command line tool to change display monitors' input sources with [DDC/CI].
+A command line tool to change input sources of display monitors with [DDC/CI].
 
 Supports Windows/Mac/Linux.
 
