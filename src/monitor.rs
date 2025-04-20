@@ -140,7 +140,7 @@ impl Monitor {
     /// Requires to call [`Monitor::update_capabilities()`] beforehand.
     pub fn input_sources(&mut self) -> Option<Vec<InputSourceRaw>> {
         if let Some(feature) = self.feature_descriptor(INPUT_SELECT) {
-            debug!("INPUT_SELECT({self}) = {feature:?}");
+            trace!("INPUT_SELECT({self}) = {feature:?}");
             if let mccs_db::ValueType::NonContinuous { values, .. } = &feature.ty {
                 return Some(values.keys().cloned().collect());
             }

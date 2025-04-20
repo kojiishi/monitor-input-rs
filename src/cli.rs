@@ -1,7 +1,7 @@
 use std::time::Instant;
 
 use super::*;
-use clap::Parser;
+use clap::{ArgAction, Parser};
 use log::*;
 use regex::Regex;
 
@@ -49,9 +49,9 @@ pub struct Cli {
     /// Dry-run (prevent actual changes).
     pub dry_run: bool,
 
-    #[arg(short, long)]
+    #[arg(short, long, action = ArgAction::Count)]
     /// Show verbose information.
-    pub verbose: bool,
+    pub verbose: u8,
 
     #[arg(skip)]
     set_index: Option<usize>,
@@ -75,10 +75,10 @@ impl Cli {
     /// The configurations depend on [`Cli::verbose`].
     pub fn init_logger(&self) {
         simplelog::CombinedLogger::init(vec![simplelog::TermLogger::new(
-            if self.verbose {
-                simplelog::LevelFilter::Debug
-            } else {
-                simplelog::LevelFilter::Info
+            match self.verbose {
+                0 => simplelog::LevelFilter::Info,
+                1 => simplelog::LevelFilter::Debug,
+                _ => simplelog::LevelFilter::Trace
             },
             simplelog::Config::default(),
             simplelog::TerminalMode::Mixed,
@@ -179,7 +179,7 @@ impl Cli {
     fn print_list(&mut self, name: &str) -> anyhow::Result<()> {
         self.for_each(name, |index, monitor| {
             println!("{index}: {}", monitor.to_long_string());
-            debug!("{:?}", monitor);
+            trace!("{:?}", monitor);
             Ok(())
         })
     }
@@ -231,22 +231,26 @@ mod tests {
     #[test]
     fn cli_parse() {
         let mut cli = Cli::parse_from([""]);
-        assert!(!cli.verbose);
+        assert_eq!(cli.verbose, 0);
         assert_eq!(cli.args.len(), 0);
 
         cli = Cli::parse_from(["", "abc", "def"]);
-        assert!(!cli.verbose);
+        assert_eq!(cli.verbose, 0);
         assert_eq!(cli.args, ["abc", "def"]);
 
         cli = Cli::parse_from(["", "-v", "abc", "def"]);
-        assert!(cli.verbose);
+        assert_eq!(cli.verbose, 1);
+        assert_eq!(cli.args, ["abc", "def"]);
+
+        cli = Cli::parse_from(["", "-vv", "abc", "def"]);
+        assert_eq!(cli.verbose, 2);
         assert_eq!(cli.args, ["abc", "def"]);
     }
 
     #[test]
     fn cli_parse_option_after_positional() {
         let cli = Cli::parse_from(["", "abc", "def", "-v"]);
-        assert!(cli.verbose);
+        assert_eq!(cli.verbose, 1);
         assert_eq!(cli.args, ["abc", "def"]);
     }
 
