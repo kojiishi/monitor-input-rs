@@ -104,7 +104,7 @@ by using a number.
 ```shell-session
 monitor-input 2
 ```
-The example above lists the display monitors of index 2.
+This command line lists the display monitors of index 2.
 In the example above,
 it's "Dell U2723QE".
 
