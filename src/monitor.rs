@@ -1,3 +1,5 @@
+use std::time::Instant;
+
 use super::*;
 use ddc_hi::{Ddc, DdcHost, FeatureCode};
 use log::*;
@@ -73,9 +75,16 @@ impl Monitor {
         }
         self.is_capabilities_updated = true;
         debug!("update_capabilities({self})");
-        self.ddc_hi_display
+        let start_time = Instant::now();
+        let result = self
+            .ddc_hi_display
             .update_capabilities()
-            .inspect_err(|e| warn!("{self}: Failed to update capabilities: {e}"))
+            .inspect_err(|e| warn!("{self}: Failed to update capabilities: {e}"));
+        debug!(
+            "update_capabilities({self}) elapsed: {:?}",
+            start_time.elapsed()
+        );
+        result
     }
 
     pub fn contains_backend(&self, backend: &str) -> bool {
@@ -144,9 +153,10 @@ impl Monitor {
     pub fn sleep_if_needed(&mut self) {
         if self.needs_sleep {
             debug!("sleep({self})");
+            let start_time = Instant::now();
             self.needs_sleep = false;
             self.ddc_hi_display.handle.sleep();
-            debug!("sleep({self}) done");
+            debug!("sleep({self}) elapsed {:?}", start_time.elapsed());
         }
     }
 

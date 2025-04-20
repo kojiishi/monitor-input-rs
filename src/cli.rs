@@ -1,3 +1,5 @@
+use std::time::Instant;
+
 use super::*;
 use clap::Parser;
 use log::*;
@@ -182,17 +184,19 @@ impl Cli {
         })
     }
 
-    fn sleep_if_needed(&mut self) {
+    fn sleep_all_if_needed(&mut self) {
+        let start_time = Instant::now();
         for monitor in &mut self.monitors {
             monitor.sleep_if_needed();
         }
-        debug!("All sleep() done");
+        debug!("sleep_all() elapsed: {:?}", start_time.elapsed());
     }
 
     const RE_SET_PATTERN: &str = r"^([^=]+)=(.+)$";
 
     /// Run the command line tool.
     pub fn run(&mut self) -> anyhow::Result<()> {
+        let start_time = Instant::now();
         Monitor::set_dry_run(self.dry_run);
         self.apply_filters()?;
 
@@ -212,7 +216,8 @@ impl Cli {
         if !has_valid_args {
             self.print_list("")?;
         }
-        self.sleep_if_needed();
+        self.sleep_all_if_needed();
+        debug!("Elapsed: {:?}", start_time.elapsed());
         Ok(())
     }
 }
