@@ -87,7 +87,7 @@ impl Monitor {
         result
     }
 
-    pub fn contains_backend(&self, backend: &str) -> bool {
+    pub(crate) fn contains_backend(&self, backend: &str) -> bool {
         self.ddc_hi_display
             .info
             .backend
@@ -95,7 +95,7 @@ impl Monitor {
             .contains(backend)
     }
 
-    pub fn contains(&self, name: &str) -> bool {
+    pub(crate) fn contains(&self, name: &str) -> bool {
         self.ddc_hi_display.info.id.contains(name)
     }
 
