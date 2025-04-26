@@ -2,7 +2,7 @@
 [![crate-badge]][crate]
 [![docs-badge]][docs]
 
-[CI-badge]: https://github.com/kojiishi/monitor-input-rs/actions/workflows/rust.yml/badge.svg
+[CI-badge]: https://github.com/kojiishi/monitor-input-rs/actions/workflows/rust-ci.yml/badge.svg
 [CI]: https://github.com/kojiishi/monitor-input-rs/actions/workflows/rust.yml
 [crate-badge]: https://img.shields.io/crates/v/monitor-input.svg
 [crate]: https://crates.io/crates/monitor-input
@@ -24,6 +24,9 @@ Also exposed [as library](#as-library).
 ## Prerequisites
 
 * Please [install Rust] if you haven't done so yet.
+* On Linux, `libudev` is required. See [libudev-sys].
+
+[libudev-sys]: https://github.com/dcuddeback/libudev-sys
 
 [install Rust]: https://rustup.rs/
 
