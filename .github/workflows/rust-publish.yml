@@ -1,0 +1,32 @@
+name: Rust Publish
+
+# Controls when the action will run.
+on:
+  release:
+    types: [published]
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Output rust version for educational purposes
+        run: rustup --version
+
+      - uses: actions/checkout@v4
+
+      # Libudev Rust Bindings requires `libudev-dev`
+      # https://github.com/dcuddeback/libudev-sys
+      - name: Install libudev-dev (Linux only)
+        run: sudo apt-get install libudev-dev
+        if: contains(matrix.os, 'ubuntu')
+
+      - name: Publish (crates.io)
+        run: cargo publish --verbose
+        env:
+          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
