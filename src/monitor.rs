@@ -114,12 +114,33 @@ impl Monitor {
     }
 
     /// Get the current input source.
+    /// # Examples
+    /// ```no_run
+    /// # use monitor_input::{InputSource,Monitor};
+    /// # fn print(monitor: &mut Monitor) -> anyhow::Result<()> {
+    /// print!("{}", InputSource::str_from_raw(monitor.input_source()?));
+    /// #   Ok(())
+    /// # }
+    /// ```
     pub fn input_source(&mut self) -> anyhow::Result<InputSourceRaw> {
         let feature_code: FeatureCode = self.feature_code(INPUT_SELECT);
         Ok(self.ddc_hi_display.handle.get_vcp_feature(feature_code)?.sl)
     }
 
     /// Set the current input source.
+    /// # Examples
+    /// ```no_run
+    /// # use monitor_input::{InputSource,Monitor};
+    /// fn set_to_usbc1(monitor: &mut Monitor) -> anyhow::Result<()> {
+    ///   monitor.set_input_source(InputSource::UsbC1.as_raw())
+    /// }
+    /// ```
+    /// ```no_run
+    /// # use monitor_input::{InputSource,Monitor};
+    /// fn set_to(monitor: &mut Monitor, input_source_str: &str) -> anyhow::Result<()> {
+    ///   monitor.set_input_source(InputSource::raw_from_str(input_source_str)?)
+    /// }
+    /// ```
     pub fn set_input_source(&mut self, value: InputSourceRaw) -> anyhow::Result<()> {
         info!(
             "InputSource({self}) = {value}{mode}",
