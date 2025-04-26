@@ -14,7 +14,7 @@ static mut DRY_RUN: bool = false;
 /// ```no_run
 /// # use monitor_input::{InputSource,Monitor};
 /// let mut monitors = Monitor::enumerate();
-/// monitors[0].set_current_input_source(InputSource::UsbC1.as_raw());
+/// monitors[0].set_input_source(InputSource::UsbC1.as_raw());
 /// ```
 pub struct Monitor {
     ddc_hi_display: ddc_hi::Display,
@@ -114,13 +114,13 @@ impl Monitor {
     }
 
     /// Get the current input source.
-    pub fn current_input_source(&mut self) -> anyhow::Result<InputSourceRaw> {
+    pub fn input_source(&mut self) -> anyhow::Result<InputSourceRaw> {
         let feature_code: FeatureCode = self.feature_code(INPUT_SELECT);
         Ok(self.ddc_hi_display.handle.get_vcp_feature(feature_code)?.sl)
     }
 
     /// Set the current input source.
-    pub fn set_current_input_source(&mut self, value: InputSourceRaw) -> anyhow::Result<()> {
+    pub fn set_input_source(&mut self, value: InputSourceRaw) -> anyhow::Result<()> {
         info!(
             "InputSource({self}) = {value}{mode}",
             value = InputSource::str_from_raw(value),
@@ -164,7 +164,7 @@ impl Monitor {
     pub fn to_long_string(&mut self) -> String {
         let mut lines = Vec::new();
         lines.push(self.to_string());
-        let input_source = self.current_input_source();
+        let input_source = self.input_source();
         lines.push(format!(
             "Input Source: {}",
             match input_source {
