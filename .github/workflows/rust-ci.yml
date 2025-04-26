@@ -21,6 +21,9 @@ jobs:
     runs-on: ${{ matrix.os }}
 
     steps:
+      - name: Output rust version for educational purposes
+        run: rustup --version
+
       - uses: actions/checkout@v4
 
       # Libudev Rust Bindings requires `libudev-dev`
