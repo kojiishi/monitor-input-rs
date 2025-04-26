@@ -146,7 +146,7 @@ impl Cli {
         let mut set_index = self.set_index;
         let result = self.for_each(name, |_, monitor: &mut Monitor| {
             if set_index.is_none() {
-                let current_input_source = monitor.current_input_source()?;
+                let current_input_source = monitor.input_source()?;
                 set_index = Some(Self::compute_toggle_set_index(
                     current_input_source,
                     &input_sources,
@@ -159,7 +159,7 @@ impl Cli {
             }
             let used_index = set_index.unwrap().min(input_sources.len() - 1);
             let input_source = input_sources[used_index];
-            monitor.set_current_input_source(input_source)
+            monitor.set_input_source(input_source)
         });
         self.set_index = set_index;
         result
@@ -172,7 +172,7 @@ impl Cli {
         }
         let input_source = InputSource::raw_from_str(value)?;
         self.for_each(name, |_, monitor: &mut Monitor| {
-            monitor.set_current_input_source(input_source)
+            monitor.set_input_source(input_source)
         })
     }
 
