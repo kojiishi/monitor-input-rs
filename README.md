@@ -23,7 +23,7 @@ Also exposed [as library](#as-library).
 
 ## Prerequisites
 
-* Please [install Rust] if you haven't done so yet.
+* [Install Rust] if you haven't done so yet.
 * On Linux, `libudev` is required. See [libudev-sys].
 
 [libudev-sys]: https://github.com/dcuddeback/libudev-sys
