@@ -76,11 +76,13 @@ impl Cli {
     pub fn init_logger(&self) {
         simplelog::CombinedLogger::init(vec![simplelog::TermLogger::new(
             match self.verbose {
-                0 => simplelog::LevelFilter::Info,
-                1 => simplelog::LevelFilter::Debug,
-                _ => simplelog::LevelFilter::Trace
+                0 => LevelFilter::Info,
+                1 => LevelFilter::Debug,
+                _ => LevelFilter::Trace,
             },
-            simplelog::Config::default(),
+            simplelog::ConfigBuilder::new()
+                .set_time_level(LevelFilter::Debug)
+                .build(),
             simplelog::TerminalMode::Mixed,
             simplelog::ColorChoice::Auto,
         )])
