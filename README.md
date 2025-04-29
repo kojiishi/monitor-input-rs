@@ -3,7 +3,7 @@
 [![docs-badge]][docs]
 
 [CI-badge]: https://github.com/kojiishi/monitor-input-rs/actions/workflows/rust-ci.yml/badge.svg
-[CI]: https://github.com/kojiishi/monitor-input-rs/actions/workflows/rust.yml
+[CI]: https://github.com/kojiishi/monitor-input-rs/actions/workflows/rust-ci.yml
 [crate-badge]: https://img.shields.io/crates/v/monitor-input.svg
 [crate]: https://crates.io/crates/monitor-input
 [docs-badge]: https://docs.rs/monitor-input/badge.svg
