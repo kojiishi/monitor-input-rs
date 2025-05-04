@@ -40,7 +40,7 @@ impl Monitor {
     /// Create an instance from [`ddc_hi::Display`].
     pub fn new(ddc_hi_display: ddc_hi::Display) -> Self {
         Monitor {
-            ddc_hi_display: ddc_hi_display,
+            ddc_hi_display,
             is_capabilities_updated: false,
             needs_sleep: false,
         }
@@ -51,12 +51,12 @@ impl Monitor {
     pub fn enumerate() -> Vec<Self> {
         ddc_hi::Display::enumerate()
             .into_iter()
-            .map(|d| Monitor::new(d))
+            .map(Monitor::new)
             .collect()
     }
 
     fn is_dry_run() -> bool {
-        unsafe { return DRY_RUN }
+        unsafe { DRY_RUN }
     }
 
     /// Set the dry-run mode.
@@ -207,6 +207,6 @@ impl Monitor {
             lines.push(format!("Model: {}", model));
         }
         lines.push(format!("Backend: {}", self.ddc_hi_display.info.backend));
-        return lines.join("\n    ");
+        lines.join("\n    ")
     }
 }
