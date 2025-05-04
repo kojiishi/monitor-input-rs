@@ -111,12 +111,12 @@ impl Cli {
         }
 
         let mut has_match = false;
-        for (index, monitor) in (&mut self.monitors).into_iter().enumerate() {
+        for (index, monitor) in self.monitors.iter_mut().enumerate() {
             if self.needs_capabilities {
                 // This may fail in some cases. Print warning but keep looking.
                 let _ = monitor.update_capabilities();
             }
-            if name.len() > 0 && !monitor.contains(name) {
+            if !name.is_empty() && !monitor.contains(name) {
                 continue;
             }
             has_match = true;
@@ -274,9 +274,9 @@ mod tests {
     #[test]
     fn re_set() {
         let re_set = Regex::new(Cli::RE_SET_PATTERN).unwrap();
-        assert_eq!(re_set.is_match("a"), false);
-        assert_eq!(re_set.is_match("a="), false);
-        assert_eq!(re_set.is_match("=a"), false);
+        assert!(!re_set.is_match("a"));
+        assert!(!re_set.is_match("a="));
+        assert!(!re_set.is_match("=a"));
         assert_eq!(matches(&re_set, "a=b"), vec!["a", "b"]);
         assert_eq!(matches(&re_set, "1=23"), vec!["1", "23"]);
         assert_eq!(matches(&re_set, "12=34"), vec!["12", "34"]);

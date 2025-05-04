@@ -1,5 +1,5 @@
-use monitor_input::{Cli,Monitor};
 use clap::Parser;
+use monitor_input::{Cli, Monitor};
 
 fn main() -> anyhow::Result<()> {
     let mut cli: Cli = Cli::parse();
