@@ -13,7 +13,7 @@ exclude = [".github", ".gitignore"]
 
 [dependencies]
 anyhow = "1.0.97"
-clap = { version = "4.5.32", features = ["derive"] }
+clap = { version = "4.5.38", features = ["derive"] }
 ddc-hi = "0.4.1"
 log = "0.4.26"
 mccs-db = "0.1.3"
