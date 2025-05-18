@@ -9,7 +9,7 @@ repository = "https://github.com/kojiishi/monitor-input-rs"
 documentation = "http://docs.rs/monitor-input"
 readme = "README.md"
 license = "Apache-2.0"
-exclude = [".github", ".gitignore"]
+exclude = [".github", ".gitignore", "hooks"]
 
 [dependencies]
 anyhow = "1.0.97"
