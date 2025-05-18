@@ -36,6 +36,27 @@ Also exposed [as library](#as-library).
 cargo install monitor-input
 ```
 
+## Windows App
+
+On Windows, there are two types of applications:
+console applications and Windows applications.
+The `monitor-input` is a console application.
+This means that,
+if you run it from non-console applications,
+a console window pops up.
+
+To run it from non-console applications
+without seeing the console window popping up,
+a Windows subsystem version is available as an optional feature.
+Please add `-F winapp` to the `cargo install` command.
+```shell-session
+cargo install monitor-input -F winapp
+```
+The `-F winapp` option installs
+the `monitor-inputw.exe` (note the `w` suffix)
+in addition to the `monitor-input.exe`.
+The executable with the `w` suffix is a Windows subsystem application.
+
 ## From [github](https://github.com/kojiishi/monitor-input-rs)
 
 ```shell-session

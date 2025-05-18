@@ -21,3 +21,16 @@ regex = "1.11.1"
 simplelog = "0.12.2"
 strum = "0.27.1"
 strum_macros = "0.27.1"
+
+[features]
+default = []
+winapp = []
+
+[[bin]]
+name = "monitor-input"
+path = "src/main.rs"
+
+[[bin]]
+name = "monitor-inputw"
+required-features = ["winapp"]
+path = "src/main_winapp.rs"
