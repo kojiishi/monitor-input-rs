@@ -23,7 +23,8 @@ Also exposed [as library](#as-library).
 
 ## Prerequisites
 
-* [Install Rust] if you haven't done so yet.
+* [Install Rust] if it's not installed yet.
+* On Windows, please also see [Windows App](#windows-app).
 * On Linux, `libudev` is required. See [libudev-sys].
 
 [libudev-sys]: https://github.com/dcuddeback/libudev-sys
@@ -35,6 +36,26 @@ Also exposed [as library](#as-library).
 ```shell-session
 cargo install monitor-input
 ```
+
+## From [github](https://github.com/kojiishi/monitor-input-rs)
+
+```shell-session
+cargo install --git https://github.com/kojiishi/monitor-input-rs
+```
+
+## From local checkout
+
+After changing the current directory to the checkout directory:
+```shell-session
+cargo install --path .
+```
+
+## As library
+
+```shell-session
+cargo add monitor-input
+```
+Please see the [API documentation at docs.rs][docs].
 
 ## Windows App
 
@@ -56,26 +77,6 @@ The `-F winapp` option installs
 the `monitor-inputw.exe` (note the `w` suffix)
 in addition to the `monitor-input.exe`.
 The executable with the `w` suffix is a Windows subsystem application.
-
-## From [github](https://github.com/kojiishi/monitor-input-rs)
-
-```shell-session
-cargo install --git https://github.com/kojiishi/monitor-input-rs
-```
-
-## From local checkout
-
-After changing the current directory to the checkout directory:
-```shell-session
-cargo install --path .
-```
-
-## As library
-
-```shell-session
-cargo add monitor-input
-```
-Please see the [API documentation at docs.rs][docs].
 
 # Usages
 
