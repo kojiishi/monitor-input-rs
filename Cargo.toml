@@ -16,6 +16,7 @@ default-run = "monitor-input"
 anyhow = "1.0.97"
 clap = { version = "4.5.38", features = ["derive"] }
 ddc-hi = "0.4.1"
+env_logger = { version = "0.11.8", optional = true }
 log = "0.4.26"
 mccs-db = "0.1.3"
 regex = "1.11.1"
@@ -25,7 +26,7 @@ strum_macros = "0.27.1"
 
 [features]
 default = ["console"]
-console = []
+console = ["dep:env_logger"]
 winapp = []
 
 [[bin]]
