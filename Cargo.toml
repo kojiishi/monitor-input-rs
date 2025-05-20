@@ -10,6 +10,7 @@ documentation = "http://docs.rs/monitor-input"
 readme = "README.md"
 license = "Apache-2.0"
 exclude = [".github", ".gitignore", "hooks"]
+default-run = "monitor-input"
 
 [dependencies]
 anyhow = "1.0.97"
@@ -23,11 +24,13 @@ strum = "0.27.1"
 strum_macros = "0.27.1"
 
 [features]
-default = []
+default = ["console"]
+console = []
 winapp = []
 
 [[bin]]
 name = "monitor-input"
+required-features = ["console"]
 path = "src/main.rs"
 
 [[bin]]
