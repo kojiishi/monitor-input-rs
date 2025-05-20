@@ -73,6 +73,10 @@ impl Cli {
 
     /// Initialize the logging.
     /// The configurations depend on [`Cli::verbose`].
+    #[deprecated(
+        since = "1.2.1",
+        note = "To remove loggers from the lib. Please setup your favorite logger."
+    )]
     pub fn init_logger(&self) {
         simplelog::CombinedLogger::init(vec![simplelog::TermLogger::new(
             match self.verbose {
