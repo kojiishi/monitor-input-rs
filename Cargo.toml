@@ -23,11 +23,12 @@ regex = "1.11.1"
 simplelog = "0.12.2"
 strum = "0.27.1"
 strum_macros = "0.27.1"
+toast-logger-win = { version = "0.2.3", optional = true }
 
 [features]
 default = ["console"]
 console = ["dep:env_logger"]
-winapp = []
+winapp = ["dep:toast-logger-win"]
 
 [[bin]]
 name = "monitor-input"

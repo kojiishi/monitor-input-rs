@@ -79,6 +79,14 @@ the `monitor-inputw.exe` (note the `w` suffix)
 in addition to the `monitor-input.exe`.
 The executable with the `w` suffix is a Windows subsystem application.
 
+Because the Windows applications can't print to console,
+errors are shown in the [Windows toast notifications].
+If you want to see more informational messages
+such as the monitor input source changes,
+please add the `-v` option to the `monitor-inputw`.
+
+[Windows toast notifications]: https://learn.microsoft.com/windows/apps/design/shell/tiles-and-notifications/toast-notifications-overview
+
 # Usages
 
 ## List display monitors

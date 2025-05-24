@@ -1,10 +1,35 @@
 #![cfg_attr(feature = "winapp", windows_subsystem = "windows")]
 
+use std::fmt;
+
 use clap::Parser;
+use toast_logger_win::ToastLogger;
+
 use monitor_input::{Cli, Monitor};
 
 fn main() -> anyhow::Result<()> {
     let mut cli: Cli = Cli::parse();
+    init_logger(cli.verbose);
     cli.monitors = Monitor::enumerate();
-    cli.run()
+    cli.run()?;
+    ToastLogger::flush()
+}
+
+fn init_logger(verbose: u8) {
+    ToastLogger::builder()
+        .auto_flush(false)
+        .max_level(match verbose {
+            0 => log::LevelFilter::Error,
+            1 => log::LevelFilter::Info,
+            2 => log::LevelFilter::Debug,
+            _ => log::LevelFilter::Trace,
+        })
+        .format(
+            |buf: &mut dyn fmt::Write, record: &log::Record| match record.level() {
+                log::Level::Info => write!(buf, "{}", record.args()),
+                _ => write!(buf, "{}: {}", record.level(), record.args()),
+            },
+        )
+        .init()
+        .unwrap();
 }
