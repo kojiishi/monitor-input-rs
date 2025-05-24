@@ -23,7 +23,7 @@ regex = "1.11.1"
 simplelog = "0.12.2"
 strum = "0.27.1"
 strum_macros = "0.27.1"
-toast-logger-win = { version = "0.2.3", optional = true }
+toast-logger-win = { version = "0.3.0", optional = true, features = ["winrt-toast"] }
 
 [features]
 default = ["console"]

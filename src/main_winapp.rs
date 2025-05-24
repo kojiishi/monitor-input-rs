@@ -3,7 +3,7 @@
 use std::fmt;
 
 use clap::Parser;
-use toast_logger_win::ToastLogger;
+use toast_logger_win::{Notification, ToastLogger};
 
 use monitor_input::{Cli, Monitor};
 
@@ -30,6 +30,14 @@ fn init_logger(verbose: u8) {
                 _ => write!(buf, "{}: {}", record.level(), record.args()),
             },
         )
+        .create_notification(|records| {
+            let mut notification = Notification::new_with_records(records)?;
+            let min_level = records.iter().map(|r| r.level).min().unwrap();
+            if min_level >= log::Level::Info {
+                notification.expires_in(std::time::Duration::from_secs(10));
+            }
+            Ok(notification)
+        })
         .init()
         .unwrap();
 }
