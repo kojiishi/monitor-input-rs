@@ -968,9 +968,9 @@ dependencies = [
 
 [[package]]
 name = "toast-logger-win"
-version = "0.3.0"
+version = "0.3.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "efd69dff8f562132123e1336292377e8bdca36d1f7994771d5364519c1ae92cb"
+checksum = "f0cb26f1f6142ebf389b4d2067118b56c47a3abb30eb0757e42c8d19730b5479"
 dependencies = [
  "anyhow",
  "log",
