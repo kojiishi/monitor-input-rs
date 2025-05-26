@@ -34,7 +34,7 @@ fn init_logger(verbose: u8) {
             let mut notification = Notification::new_with_records(records)?;
             let min_level = records.iter().map(|r| r.level).min().unwrap();
             if min_level >= log::Level::Info {
-                notification.expires_in(std::time::Duration::from_secs(10));
+                notification.expires_in(std::time::Duration::from_secs(10))?;
             }
             Ok(notification)
         })
