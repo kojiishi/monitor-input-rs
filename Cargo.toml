@@ -14,7 +14,7 @@ default-run = "monitor-input"
 
 [dependencies]
 anyhow = "1.0.97"
-clap = { version = "4.5.38", features = ["derive"] }
+clap = { version = "4.5.39", features = ["derive"] }
 ddc-hi = "0.4.1"
 env_logger = { version = "0.11.8", optional = true }
 log = "0.4.26"
