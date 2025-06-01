@@ -12,7 +12,8 @@ fn main() -> anyhow::Result<()> {
     init_logger(cli.verbose);
     cli.monitors = Monitor::enumerate();
     cli.run()?;
-    ToastLogger::flush()
+    ToastLogger::flush()?;
+    Ok(())
 }
 
 fn init_logger(verbose: u8) {
