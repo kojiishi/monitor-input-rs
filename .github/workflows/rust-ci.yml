@@ -29,7 +29,9 @@ jobs:
       # Libudev Rust Bindings requires `libudev-dev`
       # https://github.com/dcuddeback/libudev-sys
       - name: Install libudev-dev (Linux only)
-        run: sudo apt-get install libudev-dev
+        run: |
+          sudo apt-get update
+          sudo apt-get install libudev-dev
         if: contains(matrix.os, 'ubuntu')
 
       - name: Build
