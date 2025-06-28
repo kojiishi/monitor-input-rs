@@ -15,7 +15,7 @@ A command line tool to change input sources of display monitors with [DDC/CI].
 
 * Supports Windows/Mac/Linux.
 * Also exposed [as library](#as-library).
-* Please see [release notes] for the change history.
+* Please see the [release notes] for the change history.
 
 [DDC/CI]: https://en.wikipedia.org/wiki/Display_Data_Channel
 [release notes]: https://github.com/kojiishi/monitor-input-rs/releases
