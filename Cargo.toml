@@ -1,6 +1,6 @@
 [package]
 name = "monitor-input"
-version = "1.2.5"
+version = "1.2.6"
 edition = "2024"
 authors = ["Koji Ishii <kojiishi@gmail.com>"]
 description = "A command line tool to change input sources of display monitors with DDC/CI."
