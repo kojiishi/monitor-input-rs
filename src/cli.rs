@@ -185,7 +185,7 @@ impl Cli {
     fn print_list(&mut self, name: &str) -> anyhow::Result<()> {
         self.for_each(name, |index, monitor| {
             println!("{index}: {}", monitor.to_long_string());
-            trace!("{:?}", monitor);
+            trace!("{monitor:?}");
             Ok(())
         })
     }
