@@ -204,7 +204,7 @@ impl Monitor {
             ));
         }
         if let Some(model) = &self.ddc_hi_display.info.model_name {
-            lines.push(format!("Model: {}", model));
+            lines.push(format!("Model: {model}"));
         }
         lines.push(format!("Backend: {}", self.ddc_hi_display.info.backend));
         lines.join("\n    ")
