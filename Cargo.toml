@@ -40,4 +40,4 @@ path = "src/main.rs"
 [[bin]]
 name = "monitor-inputw"
 required-features = ["winapp"]
-path = "src/main.rs"
+path = "src/main_winapp.rs"
