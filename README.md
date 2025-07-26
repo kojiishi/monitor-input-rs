@@ -70,11 +70,11 @@ a console window pops up.
 To run it from non-console applications
 without seeing the console window popping up,
 a Windows subsystem version is available as an optional feature.
-Please add `-F winapp` to the `cargo install` command.
+Please add `--bins` to the `cargo install` command.
 ```shell-session
-cargo install monitor-input -F winapp
+cargo install monitor-input --bins
 ```
-The `-F winapp` option installs
+The `--bins` option installs
 the `monitor-inputw.exe` (note the `w` suffix)
 in addition to the `monitor-input.exe`.
 The executable with the `w` suffix is a Windows subsystem application.
