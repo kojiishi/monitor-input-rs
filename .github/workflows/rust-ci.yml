@@ -24,7 +24,7 @@ jobs:
       - name: Output rust version for educational purposes
         run: rustup --version
 
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       # Libudev Rust Bindings requires `libudev-dev`
       # https://github.com/dcuddeback/libudev-sys
