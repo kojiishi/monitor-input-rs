@@ -1,0 +1,45 @@
+# yaml-language-server: $schema=https://taskfile.dev/schema.json
+
+version: '3'
+
+tasks:
+  default:
+    deps: [check]
+
+  check:
+    - task: tests
+    - task: lints
+    - task: fmtcheck
+
+  fix: cargo clippy --fix {{.TARGET}} {{.FEATURE}} {{.CLIPPY}} {{.CLI_ARGS}}
+  fmt: cargo fmt {{.FMT}} {{.CLI_ARGS}}
+  fmtcheck: cargo fmt --check {{.FMT}} {{.CLI_ARGS}}
+  lint: cargo clippy {{.TARGET}} {{.FEATURE}} {{.CLIPPY}} {{.CLI_ARGS}}
+  test:
+    cmds:
+      - cargo test {{.TARGET}} {{.FEATURE}} {{.TEST}} {{.CLI_ARGS}}
+    env:
+      RUST_BACKTRACE: 1
+
+  lints:
+    cmds:
+      - task: run
+        vars: { TASK: lint }
+  tests:
+    cmds:
+      - task: run
+        vars: { TASK: test }
+  run:
+    cmds:
+      - for: { var: FEATURES }
+        task: '{{.TASK}}'
+        vars:
+          FEATURE: '{{.ITEM}}'
+
+vars:
+  CLIPPY: '-- -Dwarnings'
+  FEATURE: '--all-features'
+  FEATURES: ['', '--no-default-features', '--all-features']
+  FMT: '--all'
+  TARGET: '--all-targets'
+  TEST: ''
