@@ -25,8 +25,7 @@ A command line tool to change input sources of display monitors with [DDC/CI].
 ## Prerequisites
 
 * [Install Rust] if it's not installed yet.
-* On Windows, please also see [Windows App](#windows-app).
-* On Linux, `libudev` is required. See [libudev-sys].
+* On Linux, `libudev` is required. Please see [libudev-sys].
 
 [libudev-sys]: https://github.com/dcuddeback/libudev-sys
 
@@ -69,21 +68,19 @@ a console window pops up.
 
 To run it from non-console applications
 without seeing the console window popping up,
-a Windows subsystem version is available as an optional feature.
-Please add `-F winapp` to the `cargo install` command.
-```shell-session
-cargo install monitor-input -F winapp
-```
-The `-F winapp` option installs
-the `monitor-inputw.exe` (note the `w` suffix)
-in addition to the `monitor-input.exe`.
+a Windows subsystem version `monitor-inputw` (note the `w` suffix) is installed
+by default alongside the standard `monitor-input` executable.
 The executable with the `w` suffix is a Windows subsystem application.
 
-Because the Windows applications can't print to console,
+On platforms other than Windows,
+`monitor-inputw` is also created
+but is functionally equivalent to `monitor-input`.
+
+Because Windows applications can't print to console,
 errors are shown in the [Windows toast notifications].
 If you want to see more informational messages
 such as the monitor input source changes,
-please add the `-v` option to the `monitor-inputw`.
+please add the `-v` option to `monitor-inputw`.
 
 [Windows toast notifications]: https://learn.microsoft.com/windows/apps/design/shell/tiles-and-notifications/toast-notifications-overview
 

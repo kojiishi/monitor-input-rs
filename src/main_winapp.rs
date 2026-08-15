@@ -1,20 +1,17 @@
-#![cfg_attr(
-    all(feature = "winapp", target_os = "windows"),
-    windows_subsystem = "windows"
-)]
+#![cfg_attr(target_os = "windows", windows_subsystem = "windows")]
 
-#[cfg(all(feature = "winapp", target_os = "windows"))]
+#[cfg(target_os = "windows")]
 use std::fmt;
 
-#[cfg(all(feature = "winapp", target_os = "windows"))]
+#[cfg(target_os = "windows")]
 use clap::Parser;
-#[cfg(all(feature = "winapp", target_os = "windows"))]
+#[cfg(target_os = "windows")]
 use toast_logger_win::{Notification, ToastLogger};
 
-#[cfg(all(feature = "winapp", target_os = "windows"))]
+#[cfg(target_os = "windows")]
 use monitor_input::{Cli, Monitor};
 
-#[cfg(all(feature = "winapp", target_os = "windows"))]
+#[cfg(target_os = "windows")]
 fn main() -> anyhow::Result<()> {
     let mut cli: Cli = Cli::parse();
     init_logger(cli.verbose);
@@ -24,7 +21,7 @@ fn main() -> anyhow::Result<()> {
     Ok(())
 }
 
-#[cfg(all(feature = "winapp", target_os = "windows"))]
+#[cfg(target_os = "windows")]
 fn init_logger(verbose: u8) {
     ToastLogger::builder()
         .auto_flush(false)
@@ -52,5 +49,5 @@ fn init_logger(verbose: u8) {
         .unwrap();
 }
 
-#[cfg(not(all(feature = "winapp", target_os = "windows")))]
+#[cfg(not(target_os = "windows"))]
 include!("main.rs");

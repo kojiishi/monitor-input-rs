@@ -1,6 +1,6 @@
 [package]
 name = "monitor-input"
-version = "1.2.9"
+version = "1.2.10"
 edition = "2024"
 authors = ["Koji Ishii <kojiishi@gmail.com>"]
 description = "A command line tool to change input sources of display monitors with DDC/CI."
@@ -16,7 +16,7 @@ default-run = "monitor-input"
 anyhow = "1.0.102"
 clap = { version = "4.6.1", features = ["derive"] }
 ddc-hi = "0.4.1"
-env_logger = { version = "0.11.10", optional = true }
+env_logger = "0.11.10"
 log = "0.4.32"
 mccs-db = "0.1.3"
 regex = "1.12.3"
@@ -25,19 +25,17 @@ strum = "0.28.0"
 strum_macros = "0.28.0"
 
 [target.'cfg(windows)'.dependencies]
-toast-logger-win = { version = "0.5.2", optional = true }
+toast-logger-win = "0.5.2"
 
 [features]
-default = ["console"]
-console = ["dep:env_logger"]
-winapp = ["dep:toast-logger-win"]
+# The `winapp` feature is no longer used since 1.2.10,
+# but is kept as no-op so that existing install doesn't fail.
+winapp = []
 
 [[bin]]
 name = "monitor-input"
-required-features = ["console"]
 path = "src/main.rs"
 
 [[bin]]
 name = "monitor-inputw"
-required-features = ["winapp"]
 path = "src/main_winapp.rs"
